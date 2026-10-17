@@ -340,7 +340,9 @@
   }
   function placeCall(target) {
     const name = nameOf(target), number = numberOf(target);
-    const sc = (P.callScripts || {})[name] || (P.callScripts || {})[number];
+    let sc = (P.callScripts || {})[name] || (P.callScripts || {})[number];
+    if (sc && sc.miss && Math.random() < sc.miss)   // 가끔 받지 않음 → 한참 울리다 음성사서함 안내
+      sc = { ringMs: 20000, dead: true, lines: ["지금 거신 전화는 받을 수 없습니다.", "삐 소리 후 음성사서함으로 연결되며, 통화료가 부과됩니다.", { text: "삐—", beep: true, ms: 1400 }] };
     const el = h(`<section class="scr callscr">
       <div class="cs-state" data-state>발신 중…</div>
       <div class="cs-ph">${AV}</div>
