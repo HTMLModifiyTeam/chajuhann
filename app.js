@@ -327,6 +327,17 @@
       breath(t, R(.4, .7), 900, R(.05, .08), false); t += R(.5, 1.3);              // 내쉬는 숨
     }
   }
+  /* 녹음된 소리 재생 (audio 폴더의 mp3). 휴대폰을 열 때 미리 불러 둠 */
+  const sounds = {};
+  function loadSound(url) {
+    if (!audioCtx || sounds[url]) return;
+    sounds[url] = fetch(url).then(r => r.arrayBuffer()).then(b => new Promise((res, rej) => audioCtx.decodeAudioData(b, res, rej))).catch(() => null);
+  }
+  function playSound(url) {
+    let src = null, stopped = false;
+    if (audioCtx) { loadSound(url); sounds[url].then(buf => { if (!buf || stopped) return; src = audioCtx.createBufferSource(); src.buffer = buf; src.connect(audioCtx.destination); src.start(); }); }
+    return () => { stopped = true; try { src && src.stop(); } catch (e) {} };
+  }
   function placeCall(target) {
     const name = nameOf(target), number = numberOf(target);
     const sc = (P.callScripts || {})[name] || (P.callScripts || {})[number];
@@ -337,15 +348,15 @@
       <div class="cs-line" data-line></div>
       <button class="cs-end" data-end>${IC.handset}종료</button></section>`);
     const timers = [], st = el.querySelector("[data-state]"), line = el.querySelector("[data-line]");
-    let t1 = null, tmr = null, ended = false; const stopRing = ringback();
+    let t1 = null, tmr = null, ended = false; const stopRing = ringback(), stops = [];
     const say = (txt, ms) => { line.textContent = txt; line.classList.add("show"); };
     const end = () => {
-      if (ended) return; ended = true; timers.forEach(clearTimeout); clearInterval(tmr); stopRing();
+      if (ended) return; ended = true; timers.forEach(clearTimeout); clearInterval(tmr); stopRing(); stops.forEach(f => f());
       const sec = t1 ? Math.floor((Date.now() - t1) / 1000) : 0;
       P.calls.unshift({ name: contactBy(target) ? name : number, dir: "out", when: nowLabel(), length: t1 ? `${Math.floor(sec / 60)}분 ${sec % 60}초` : "" });
       st.textContent = "통화 종료"; setTimeout(() => { if (stack.includes(el)) pop(); }, 900);
     };
-    el._onClose = () => { stopRing(); if (!ended) { ended = true; timers.forEach(clearTimeout); clearInterval(tmr); } };
+    el._onClose = () => { stopRing(); stops.forEach(f => f()); if (!ended) { ended = true; timers.forEach(clearTimeout); clearInterval(tmr); } };
     el.querySelector("[data-end]").onclick = end;
     if (sc) {
       timers.push(setTimeout(() => {
@@ -355,7 +366,7 @@
           draw(); tmr = setInterval(draw, 1000);
         }
         let at = 900;
-        (sc.lines || []).forEach(l => { const txt = typeof l === "string" ? l : l.text, ms = (l && l.ms) || 2600; timers.push(setTimeout(() => { if (l && l.beep) beep(); if (l && l.sob) sob(ms); say(txt); }, at)); at += ms; });
+        (sc.lines || []).forEach(l => { const txt = typeof l === "string" ? l : l.text, ms = (l && l.ms) || 2600; timers.push(setTimeout(() => { if (l && l.beep) beep(); if (l && l.sob) sob(ms); if (l && l.sound) stops.push(playSound(l.sound)); say(txt); }, at)); at += ms; });
         timers.push(setTimeout(() => { line.classList.remove("show"); }, at)); timers.push(setTimeout(end, at + 900));
       }, sc.ringMs || 2600));
     } else {
@@ -508,6 +519,7 @@
     if (layer.classList.contains("open")) return;
     if (t0 === null) t0 = Date.now();
     try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); else if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) {}
+    Object.values(P.callScripts || {}).forEach(s => (s.lines || []).forEach(l => l && l.sound && loadSound(l.sound)));
     fit();
     if (!stack.length) { push(lockScreen()); }
     sbIcons(); tick();
