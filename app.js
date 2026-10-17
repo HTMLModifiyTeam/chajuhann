@@ -338,6 +338,28 @@
     if (audioCtx) { loadSound(url); sounds[url].then(buf => { if (!buf || stopped) return; src = audioCtx.createBufferSource(); src.buffer = buf; src.connect(audioCtx.destination); src.start(); }); }
     return () => { stopped = true; try { src && src.stop(); } catch (e) {} };
   }
+  function pickup() {   // 전화 받을 때 '달칵'
+    const ctx = audioCtx; if (!ctx) return; const t = ctx.currentTime;
+    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * .06), ctx.sampleRate), ch = buf.getChannelData(0);
+    for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * .006));
+    const s = ctx.createBufferSource(); s.buffer = buf;
+    const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 2200; f.Q.value = .9;
+    const g = ctx.createGain(); g.gain.value = .5; s.connect(f); f.connect(g); g.connect(ctx.destination); s.start(t);
+    const o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(60, t + .08);
+    og.gain.setValueAtTime(.18, t); og.gain.exponentialRampToValueAtTime(.001, t + .1); o.connect(og); og.connect(ctx.destination); o.start(t); o.stop(t + .12);
+  }
+  function lineHum() {   // 통화 중 수화기 너머 은은한 '웅—' (아주 작게)
+    const ctx = audioCtx; if (!ctx) return () => {};
+    const len = ctx.sampleRate * 3, buf = ctx.createBuffer(1, len, ctx.sampleRate), ch = buf.getChannelData(0);
+    let last = 0; for (let i = 0; i < len; i++) { last = (last + .02 * (Math.random() * 2 - 1)) / 1.02; ch[i] = last * 3.5; }   // 낮게 깔리는 잡음
+    const s = ctx.createBufferSource(); s.buffer = buf; s.loop = true;
+    const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 420;
+    const hum = ctx.createOscillator(); hum.frequency.value = 110; const hg = ctx.createGain(); hg.gain.value = .006;
+    const g = ctx.createGain(), t = ctx.currentTime; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05, t + .6);
+    s.connect(lp); lp.connect(g); hum.connect(hg); hg.connect(g); g.connect(ctx.destination); s.start(); hum.start();
+    let done = false;
+    return () => { if (done) return; done = true; const t2 = ctx.currentTime; g.gain.cancelScheduledValues(t2); g.gain.setValueAtTime(g.gain.value, t2); g.gain.linearRampToValueAtTime(0, t2 + .25); try { s.stop(t2 + .3); hum.stop(t2 + .3); } catch (e) {} };
+  }
   function placeCall(target) {
     const name = nameOf(target), number = numberOf(target);
     let sc = (P.callScripts || {})[name] || (P.callScripts || {})[number];
@@ -374,6 +396,7 @@
       timers.push(setTimeout(() => {
         stopRing();
         if (!sc.dead) {   // dead: 없는 번호 안내만 나오고 통화는 연결되지 않음
+          pickup(); stops.push(lineHum());
           t1 = Date.now(); const draw = () => { const s = Math.floor((Date.now() - t1) / 1000); st.textContent = `통화 중  ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
           draw(); tmr = setInterval(draw, 1000);
         }
