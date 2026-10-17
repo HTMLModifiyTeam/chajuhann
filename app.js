@@ -1,5 +1,6 @@
 (() => {
-  const P = window.PHONE, S = window.STORY;
+  const P = window.PHONE, S = window.STORY || {};
+  const DIRECT = !(S.paragraphs || []).some(p => p);   // 본문이 비어 있으면 바로 휴대폰
   const $ = s => document.querySelector(s);
   const h = html => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
   const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -839,9 +840,10 @@
     if (!stack.length) { push(lockScreen()); }
     sbIcons(); tick();
     layer.classList.add("open"); layer.setAttribute("aria-hidden", "false");
-    try { history.pushState({ phone: 1 }, "", "#phone"); } catch (e) {}
+    if (!DIRECT) try { history.pushState({ phone: 1 }, "", "#phone"); } catch (e) {}
   }
   function closePhone(fromPop) {
+    if (DIRECT) return;   // 본문 없이 휴대폰만 보여 주는 모드: 닫히지 않음
     if (!layer.classList.contains("open")) return;
     layer.classList.remove("open"); layer.setAttribute("aria-hidden", "true");
     if (!fromPop) { try { if (location.hash === "#phone") history.back(); } catch (e) {} }
@@ -850,4 +852,10 @@
   layer.addEventListener("click", e => { if (e.target.closest("[data-close]")) closePhone(); });
   addEventListener("popstate", () => closePhone(true));
   addEventListener("keydown", e => { if (e.key === "Escape") closePhone(); });
+  if (DIRECT) {   // 본문이 없으면 페이지를 열자마자 휴대폰 화면. 소리는 첫 터치 때 켜짐 (브라우저 정책)
+    document.body.classList.add("direct"); story.remove();
+    const wake = () => { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) {} };
+    addEventListener("pointerdown", wake, { capture: true }); addEventListener("keydown", wake, { capture: true });
+    openPhone();
+  }
 })();

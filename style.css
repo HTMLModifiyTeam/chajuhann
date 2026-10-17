@@ -397,3 +397,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .lk-date,.lk-time{text-shadow:0 1px 4px rgba(0,0,0,.55)}
 .wg-clock{background:linear-gradient(rgba(0,20,60,.28),rgba(0,20,60,.14));text-shadow:0 1px 3px rgba(0,0,0,.45)}
 .home .app span,.home .app small,.home .app{ text-shadow:0 1px 3px rgba(0,0,0,.75)}
+
+/* 본문 없이 바로 휴대폰 */
+body.direct .close-phone{display:none}
+body.direct .backdrop{pointer-events:none}
