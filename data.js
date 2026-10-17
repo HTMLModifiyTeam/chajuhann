@@ -22,12 +22,12 @@ window.PHONE = {
 
   /* 연락처: 이름 순으로 자동 정렬 */
   contacts: [
-    { name: "사무실", number: "02-000-1234" },
+    { name: "형사3부", number: "02-000-1234" },
     { name: "어머니", number: "010-0000-5512" },
     { name: "아버지", number: "010-0000-3307" },
     { name: "오양훈 계장님", number: "010-0000-4128" },
     { name: "이예진 검사", number: "010-0000-8261" },
-    { name: "황영찬 검찰총장님", number: "010-0000-1004" },
+    { name: "황영찬 검사장님", number: "010-0000-1004" },
     { name: "박영기 차장검사님", number: "010-0000-2290" },
     { name: "택배 기사님", number: "010-0000-7731" }
   ],
@@ -35,7 +35,7 @@ window.PHONE = {
   /* 통화 기록 (위에서부터 최신). dir: in 받은 · out 건 · missed 부재중 */
   calls: [
     { name: "어머니", dir: "missed", when: "오후 9:12" },
-    { name: "사무실", dir: "out", when: "오후 6:40", length: "1분 12초" },
+    { name: "형사3부", dir: "out", when: "오후 6:40", length: "1분 12초" },
     { name: "02-000-9876", dir: "in", when: "어제", length: "0분 34초" }
   ],
 
