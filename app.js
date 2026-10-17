@@ -313,7 +313,7 @@
   const threadFor = name => P.messages.find(t => t.name === name) || { name, msgs: [], _new: true };
   function threadRows() {
     return P.messages.map((t, i) => { const last = [...t.msgs].reverse().find(m => m.text) || {}; const d = [...t.msgs].reverse().find(m => m.date);
-      return `<button class="row${t.unread ? " unread" : ""}" data-thread="${i}" style="width:100%;text-align:left"><span class="ph">${AV}</span><span class="tx"><b>${esc(nameOf(t.name))}</b><small>${esc(last.text || "")}</small></span><span class="rt">${esc(last.time || (d ? d.date : ""))}${t.unread ? `<br><span class="cnt">${t.unread}</span>` : ""}</span></button>`; }).join("") || `<div class="empty">메시지가 없습니다.</div>`;
+      return `<button class="row${t.unread ? " unread" : ""}" data-thread="${i}" style="width:100%;text-align:left"><span class="ph">${AV}</span><span class="tx"><b>${esc(nameOf(t.name))}</b><small>${esc(last.text || "")}</small></span><span class="rt">${esc((() => { const md = d && d.date.match(/(\d+)월 (\d+)일/); return md && !(+md[1] === TODAY.getMonth() + 1 && +md[2] === TODAY.getDate()) ? `${md[1]}월 ${md[2]}일` : (last.time || ""); })())}${t.unread ? `<br><span class="cnt">${t.unread}</span>` : ""}</span></button>`; }).join("") || `<div class="empty">메시지가 없습니다.</div>`;
   }
   function messagesApp() {
     const el = h(`<section class="scr"><div class="tbar">메시지</div><div class="scroll list" data-list>${threadRows()}</div></section>`);
