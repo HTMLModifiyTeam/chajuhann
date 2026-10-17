@@ -290,17 +290,42 @@
     const g = ctx.createGain(), o = ctx.createOscillator(); o.frequency.value = 1000; g.gain.value = .06;
     o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + .6);
   }
-  function sob(ms) {   // 흐느끼는 소리: 낮게 거른 잡음이 불규칙하게 커졌다 작아짐
+  function sob(ms) {   // 흐느끼는 소리 합성: 들숨(헉) + 떨리는 목소리 흐느낌(으, 흐으) + 숨소리, 전화선처럼 대역 제한
     const ctx = audioCtx; if (!ctx) return;
-    const len = Math.ceil(ctx.sampleRate * ms / 1000), buf = ctx.createBuffer(1, len, ctx.sampleRate), ch = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
-    const src = ctx.createBufferSource(); src.buffer = buf;
-    const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 900; f.Q.value = 1.2;
-    const g = ctx.createGain(); g.gain.value = 0; src.connect(f); f.connect(g); g.connect(ctx.destination);
-    let t = ctx.currentTime + .2; const endT = ctx.currentTime + ms / 1000;
-    while (t < endT - .6) { const up = .25 + Math.random() * .5, hold = .2 + Math.random() * .6;
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05 + Math.random() * .05, t + up); g.gain.linearRampToValueAtTime(0, t + up + hold); t += up + hold + .3 + Math.random() * 1.2; }
-    src.start(); src.stop(endT);
+    const out = ctx.createGain(); out.gain.value = 2.6;
+    const hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 320;
+    const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 3200;
+    out.connect(hp); hp.connect(lp); lp.connect(ctx.destination);
+    const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate), nd = noiseBuf.getChannelData(0);
+    for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    const R = (a, b) => a + Math.random() * (b - a);
+    const breath = (t, dur, freq, vol, rise) => {   // 숨소리 (들숨은 rise=true)
+      const s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
+      const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.setValueAtTime(freq, t); f.frequency.linearRampToValueAtTime(freq * (rise ? 1.5 : .8), t + dur); f.Q.value = 1.4;
+      const g = ctx.createGain(); g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(vol, t + (rise ? dur * .8 : .04)); g.gain.linearRampToValueAtTime(0, t + dur);
+      s.connect(f); f.connect(g); g.connect(out); s.start(t, Math.random()); s.stop(t + dur + .05);
+    };
+    const voice = (t, dur, f0a, f0b, vol) => {   // 떨리는 목소리 한 토막
+      const o = ctx.createOscillator(); o.type = "sawtooth";
+      o.frequency.setValueAtTime(f0a, t); o.frequency.exponentialRampToValueAtTime(f0b, t + dur);
+      const vib = ctx.createOscillator(), vg = ctx.createGain(); vib.frequency.value = R(5, 8); vg.gain.value = R(6, 14); vib.connect(vg); vg.connect(o.frequency);
+      const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .03); g.gain.setValueAtTime(vol * .8, t + dur * .6); g.gain.linearRampToValueAtTime(0, t + dur);
+      [[R(600, 800), 5, 1], [R(1050, 1300), 7, .6], [2600, 9, .25]].forEach(([fr, q, amt]) => {   // 모음 '으/어' 포먼트
+        const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = fr; bp.Q.value = q;
+        const fg = ctx.createGain(); fg.gain.value = amt; o.connect(bp); bp.connect(fg); fg.connect(g);
+      });
+      g.connect(out); breath(t, dur, 1400, vol * .5, false);
+      o.start(t); vib.start(t); o.stop(t + dur + .05); vib.stop(t + dur + .05);
+    };
+    let t = ctx.currentTime + .15; const end = t + ms / 1000 - .3;
+    while (t < end) {
+      breath(t, R(.28, .45), 1800, R(.10, .16), true); t += R(.35, .5);           // 헉 (들숨)
+      const n = Math.floor(R(2, 5)), base = R(260, 330);
+      for (let k = 0; k < n && t < end; k++) { const d = R(.14, .26); voice(t, d, base * R(1, 1.08), base * R(.82, .92), R(.10, .16) * (1 - k * .12)); t += d + R(.05, .11); }
+      if (Math.random() < .45 && t < end - 1) { const d = R(.6, 1.1); voice(t, d, R(300, 360), R(190, 230), R(.08, .13)); t += d + .1; }   // 길게 흐으으
+      breath(t, R(.4, .7), 900, R(.05, .08), false); t += R(.5, 1.3);              // 내쉬는 숨
+    }
   }
   function placeCall(target) {
     const name = nameOf(target), number = numberOf(target);
