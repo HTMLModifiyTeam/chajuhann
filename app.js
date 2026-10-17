@@ -425,7 +425,7 @@
   function messagesApp() {
     const el = h(`<section class="scr"><div class="tbar">메시지</div><div class="scroll list" data-list>${threadRows()}</div></section>`);
     el.addEventListener("click", e => { const r = e.target.closest("[data-thread]"); if (r) push(convScreen(P.messages[+r.dataset.thread])); });
-    el._refresh = () => { el.querySelector("[data-list]").innerHTML = threadRows(); };
+    el._refresh = () => { el.querySelector("[data-list]").innerHTML = threadRows(); }; el._msgList = true;
     return el;
   }
   function convScreen(T) {
@@ -437,6 +437,7 @@
     const conv = el.querySelector("[data-conv]"), inp = el.querySelector("input");
     requestAnimationFrame(() => conv.scrollTop = conv.scrollHeight);
     const add = m => { T.msgs.push(m); conv.insertAdjacentHTML("beforeend", bubble(m)); conv.scrollTop = conv.scrollHeight; };
+    el._thread = T; el._show = m => { conv.insertAdjacentHTML("beforeend", bubble(m)); conv.scrollTop = conv.scrollHeight; };
     el.querySelector("form").onsubmit = e => {
       e.preventDefault(); const text = inp.value.trim(); if (!text) return; inp.value = "";
       const dl = `${TODAY.getFullYear()}년 ${dateLabel(TODAY)}`;
@@ -446,6 +447,55 @@
       const R = T.replies; if (R && (T._ri ?? -1) + 1 < R.length) { const r = R[T._ri = (T._ri ?? -1) + 1]; setTimeout(() => add({ text: r, time: nowLabel() }), 1800); }
     };
     return el;
+  }
+
+  /* ================= 문자 수신 (모르는 번호의 협박 문자) ================= */
+  function smsTone() {
+    const ctx = audioCtx; if (!ctx) return; const t = ctx.currentTime;
+    [[0, 1320], [.16, 990]].forEach(([d, f]) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = f; g.gain.setValueAtTime(0, t + d); g.gain.linearRampToValueAtTime(.06, t + d + .01); g.gain.exponentialRampToValueAtTime(.001, t + d + .14); o.connect(g); g.connect(ctx.destination); o.start(t + d); o.stop(t + d + .16); });
+  }
+  let tickerT;
+  function ticker(name, text) {
+    let tk = $("#ticker"); if (!tk) { tk = h(`<div id="ticker" class="ticker"></div>`); $("#screen").appendChild(tk); }
+    tk.innerHTML = `${IC.sms}<b>${esc(nameOf(name))}</b><span>${esc(text)}</span>`;
+    tk.classList.remove("show"); void tk.offsetWidth; tk.classList.add("show");
+    clearTimeout(tickerT); tickerT = setTimeout(() => tk.classList.remove("show"), 3200);
+  }
+  function deliverSMS(name, text) {
+    let T = P.messages.find(t => t.name === name);
+    if (T) P.messages.splice(P.messages.indexOf(T), 1); else T = { name, msgs: [] };
+    const dl = `${TODAY.getFullYear()}년 ${dateLabel(TODAY)}`, m = { text, time: nowLabel() }, top = stack[stack.length - 1];
+    const needDate = ([...T.msgs].reverse().find(x => x.date) || {}).date !== dl;
+    if (needDate) T.msgs.push({ date: dl });
+    T.msgs.push(m); P.messages.unshift(T);
+    if (top && top._thread === T && layer.classList.contains("open")) { if (needDate) top._show({ date: dl }); top._show(m); }
+    else T.unread = (T.unread || 0) + 1;
+    stack.forEach(s => s._msgList && s._refresh());
+    sbIcons();
+    if (layer.classList.contains("open")) { smsTone(); if (!(top && top._thread === T)) ticker(name, text); }
+  }
+  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  function randomNumber() {
+    let n;
+    do { n = Math.random() < .8 ? `010-${rnd(2000, 9999)}-${rnd(1000, 9999)}` : `0${["11", "16", "17", "19"][rnd(0, 3)]}-${rnd(200, 999)}-${rnd(1000, 9999)}`; }
+    while (contactBy(n) || P.messages.some(t => t.name === n));
+    return n;
+  }
+  let harassOn = false, lastH = -1;
+  function harassLoop() {
+    if (harassOn || !(P.harass || []).length) return; harassOn = true;
+    const next = () => setTimeout(burst, rnd(60, 180) * 1000);   // 1~3분 간격
+    function burst() {
+      const n = rnd(1, 4); let num = randomNumber(), at = 0;
+      for (let i = 0; i < n; i++) {
+        if (i && Math.random() < .6) num = randomNumber();   // 대부분은 매번 다른 번호
+        let k; do { k = rnd(0, P.harass.length - 1); } while (k === lastH && P.harass.length > 1); lastH = k;
+        const who = num, txt = P.harass[k];
+        setTimeout(() => deliverSMS(who, txt), at); at += rnd(1500, 4500);
+      }
+      next();
+    }
+    next();
   }
 
   /* ================= 메모 ================= */
@@ -558,6 +608,7 @@
   function openPhone() {
     if (layer.classList.contains("open")) return;
     if (t0 === null) t0 = Date.now();
+    harassLoop();
     try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); else if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) {}
     Object.values(P.callScripts || {}).forEach(s => (s.lines || []).forEach(l => l && l.sound && loadSound(l.sound)));
     fit();

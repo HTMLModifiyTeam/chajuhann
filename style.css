@@ -250,3 +250,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .cs-line .ln{opacity:0;transform:translateY(12px);transition:opacity .4s,transform .4s}
 .cs-line .ln.in{opacity:1;transform:none}
 .cs-line .ln:not(:last-child){opacity:.6}
+/* 문자 수신 티커 (상태 표시줄 아래로 내려옴) */
+.ticker{position:absolute;left:0;right:0;top:24px;z-index:35;display:flex;align-items:center;gap:7px;padding:7px 10px;background:linear-gradient(#3a3c40,#1b1c1f);border-bottom:1px solid #000;box-shadow:0 2px 8px rgba(0,0,0,.6);font-size:13px;transform:translateY(-110%);opacity:0;transition:transform .25s,opacity .25s;pointer-events:none}
+.ticker.show{transform:none;opacity:1}
+.ticker svg{width:18px;height:18px;flex:none}
+.ticker b{flex:none;font-weight:600}
+.ticker span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#ddd}
