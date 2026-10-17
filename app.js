@@ -254,7 +254,12 @@
           <div class="dial-act"><button data-dsms>${IC.sms}</button><button class="call" data-dcall>${IC.handset}</button><button data-del>${IC.back}</button></div>`;
         const show = () => { const d = bodyEl.querySelector("[data-num]"); d.textContent = num || "번호를 입력하세요"; d.classList.toggle("empty", !num); };
         show();
-        bodyEl.querySelectorAll("[data-k]").forEach(b => b.onclick = () => { if (num.length < 16) num += b.dataset.k; show(); });
+        bodyEl.querySelectorAll("[data-k]").forEach(b => {
+          let lp = null, fired = false;
+          b.onpointerdown = () => { fired = false; if (b.dataset.k === "1" && !num) lp = setTimeout(() => { fired = true; placeCall("1"); }, 650); };   // 1번 길게: 음성사서함
+          b.onpointerup = b.onpointerleave = () => clearTimeout(lp);
+          b.onclick = () => { if (fired) return; dtmf(b.dataset.k); if (num.length < 16) num += b.dataset.k; show(); };
+        });
         bodyEl.querySelector("[data-del]").onclick = () => { num = num.slice(0, -1); show(); };
         bodyEl.querySelector("[data-dcall]").onclick = () => { if (!num) { const last = P.calls.find(c => c.dir === "out"); if (last) { num = numberOf(last.name); show(); } return; } placeCall(num); };
         bodyEl.querySelector("[data-dsms]").onclick = () => { if (num) push(convScreen(threadFor(nameOf(num)))); };
@@ -365,20 +370,54 @@
     let done = false;
     return () => { if (done) return; done = true; const t2 = ctx.currentTime; g.gain.cancelScheduledValues(t2); g.gain.setValueAtTime(g.gain.value, t2); g.gain.linearRampToValueAtTime(0, t2 + .25); try { s.stop(t2 + .3); hum.stop(t2 + .3); } catch (e) {} };
   }
+  /* 통화 화면 (갤럭시 S 스타일): 이름·번호 / 일시중단·시간 / 녹음·다이얼·통화 종료·스피커·송화음 차단·Bluetooth */
+  const DTMF = { 1: [697, 1209], 2: [697, 1336], 3: [697, 1477], 4: [770, 1209], 5: [770, 1336], 6: [770, 1477], 7: [852, 1209], 8: [852, 1336], 9: [852, 1477], "*": [941, 1209], 0: [941, 1336], "#": [941, 1477] };
+  function dtmf(k) {
+    const ctx = audioCtx, f = DTMF[k]; if (!ctx || !f) return; const t = ctx.currentTime, g = ctx.createGain();
+    g.gain.setValueAtTime(.05, t); g.gain.setValueAtTime(0, t + .14); g.connect(ctx.destination);
+    f.forEach(fr => { const o = ctx.createOscillator(); o.frequency.value = fr; o.connect(g); o.start(t); o.stop(t + .15); });
+  }
+  const callShell = (name, sub, incoming) => `<section class="scr callscr tw${incoming ? " incall" : ""}">
+      <div class="tw-head"><div class="tw-name">${esc(name)}</div><div class="tw-sub">${esc(sub || "")}</div></div>
+      <div class="cs-line" data-line></div>
+      <div class="tw-bar"><button class="tw-hold" data-hold><i></i><span>일시중단</span></button><span class="cs-state" data-state>${incoming ? "수신 전화" : "발신 중…"}</span></div>
+      <div class="tw-grid" data-grid${incoming ? " hidden" : ""}>
+        <button data-tk="rec"><i class="tw-rec"></i>녹음</button>
+        <button data-tk="pad"><i class="tw-padic">${[1, 2, 3, 4].map(n => `<b>${n}</b>`).join("")}</i>다이얼</button>
+        <button class="tw-end" data-end>${IC.handset}통화 종료</button>
+        <button data-tk="spk">스피커</button>
+        <button data-tk="mute">송화음 차단</button>
+        <button data-tk="bt">Bluetooth</button>
+      </div>
+      ${incoming ? `<div class="ic-btns" data-btns><button class="ic-ok" data-ok>${IC.handset}통화</button><button class="ic-no" data-no>${IC.handset}거절</button></div>` : ""}
+      <div class="tw-pad" data-pad hidden><div class="tw-digits" data-digits></div>
+        <div class="tw-keys">${["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"].map(k => `<button data-dk="${k}">${k}</button>`).join("")}</div>
+        <button class="tw-hide" data-hide>숨기기</button></div>
+    </section>`;
+  function wireCall(el, onKey) {
+    const pad = el.querySelector("[data-pad]"), digits = el.querySelector("[data-digits]");
+    el.querySelectorAll("[data-tk]").forEach(b => b.onclick = () => {
+      const k = b.dataset.tk;
+      if (k === "pad") { pad.hidden = false; return; }
+      if (k === "bt") { toast("연결된 Bluetooth 기기가 없습니다."); return; }
+      b.classList.toggle("on");
+      if (k === "rec") toast(b.classList.contains("on") ? "통화 녹음을 시작합니다." : "통화 녹음을 저장했습니다.");
+    });
+    el.querySelector("[data-hold]").onclick = e => { const b = e.currentTarget; b.classList.toggle("on"); b.querySelector("span").textContent = b.classList.contains("on") ? "통화 재개" : "일시중단"; };
+    el.querySelector("[data-hide]").onclick = () => { pad.hidden = true; };
+    el.querySelectorAll("[data-dk]").forEach(b => b.onclick = () => { const k = b.dataset.dk; dtmf(k); digits.textContent = (digits.textContent + k).slice(-14); onKey && onKey(k); });
+  }
   function placeCall(target) {
     inCall = true;
-    const name = nameOf(target), number = numberOf(target);
-    let sc = (P.callScripts || {})[name] || (P.callScripts || {})[number];
+    const isVM = target === "1" || target === "음성사서함";
+    const name = isVM ? "음성사서함" : nameOf(target), number = isVM ? "소리샘" : numberOf(target);
+    let sc = isVM ? { ringMs: 1500, voicemail: true, lines: [] } : (P.callScripts || {})[name] || (P.callScripts || {})[number];
     if (sc) {   // 두 번째 전화부터는 again 대본 (reject: 짧게 울리다 끊김)
       sc._n = (sc._n || 0) + 1;
       if (sc._n >= 2 && sc.again) sc = sc.again.reject ? { ringMs: sc.again.ringMs || 1800, dead: true, lines: [] } : sc.again;
     }
-    const el = h(`<section class="scr callscr">
-      <div class="cs-state" data-state>발신 중…</div>
-      <div class="cs-ph">${AV}</div>
-      <div class="cs-name">${esc(name)}</div><div class="cs-num">${esc(name === number ? "" : number)}</div>
-      <div class="cs-line" data-line></div>
-      <button class="cs-end" data-end>${IC.handset}종료</button></section>`);
+    const el = h(callShell(name, name === number ? "" : number));
+    let onKey = null; wireCall(el, k => onKey && onKey(k));
     const timers = [], st = el.querySelector("[data-state]"), line = el.querySelector("[data-line]");
     let t1 = null, tmr = null, ended = false; const stopRing = ringback(), stops = [];
     const say = txt => {
@@ -405,6 +444,20 @@
           pickup(); stops.push(lineHum());
           t1 = Date.now(); const draw = () => { const s = Math.floor((Date.now() - t1) / 1000); st.textContent = `통화 중  ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
           draw(); tmr = setInterval(draw, 1000);
+        }
+        if (sc.voicemail) {   // 소리샘: 1번을 누르면 녹음된 메시지 재생
+          const VM = P.voicemail || {}; let stage = 0, stopMsg = null;
+          const guide = (txt, ms, then) => { say(txt); timers.push(setTimeout(() => then && then(), ms)); };
+          const playMsg = () => {
+            stage = 1; if (stopMsg) stopMsg();
+            guide(`새 메시지가 1건 있습니다.`, 2200, () => guide(VM.label || "", 3000, () => {
+              say(""); stopMsg = playSound(VM.sound); stops.push(stopMsg);
+              timers.push(setTimeout(() => { stage = 2; say("메시지가 끝났습니다. 다시 들으시려면 1번, 종료하시려면 통화 종료를 눌러 주세요."); }, (VM.ms || 19000) + 400));
+            }));
+          };
+          timers.push(setTimeout(() => say("음성 사서함 열람을 원하시면 1번을 눌러 주세요."), 900));
+          onKey = k => { if (stage === 1) return; if (k === "1") playMsg(); else say("잘못 누르셨습니다. 다시 눌러 주세요."); };
+          return;
         }
         let at = 900;
         (sc.lines || []).forEach(l => { const txt = typeof l === "string" ? l : l.text, ms = (l && l.ms) || 2600; timers.push(setTimeout(() => { if (l && l.beep) beep(); if (l && l.sob) sob(ms); if (l && l.sound) stops.push(playSound(l.sound)); say(txt); line.classList.toggle("me", !!(l && l.me)); }, at)); at += ms; });
@@ -519,13 +572,8 @@
     let k; do { k = rnd(0, L.length - 1); } while (k === lastC && L.length > 1); lastC = k;
     const lines = L[k], number = randomNumber();
     inCall = true;
-    const el = h(`<section class="scr callscr incall">
-      <div class="cs-state" data-state>수신 전화</div>
-      <div class="cs-ph">${AV}</div>
-      <div class="cs-name">${esc(number)}</div><div class="cs-num">저장되지 않은 번호</div>
-      <div class="cs-line" data-line></div>
-      <div class="ic-btns" data-btns><button class="ic-ok" data-ok>${IC.handset}통화</button><button class="ic-no" data-no>${IC.handset}거절</button></div>
-      <button class="cs-end" data-end hidden>${IC.handset}종료</button></section>`);
+    const el = h(callShell(number, "저장되지 않은 번호", true));
+    wireCall(el);
     const st = el.querySelector("[data-state]"), line = el.querySelector("[data-line]"), timers = [], stops = [];
     let stopRing = ringtone(), t1 = null, tmr = null, done = false;
     const close = (dir) => {
@@ -540,7 +588,7 @@
     el.querySelector("[data-no]").onclick = () => close("거절됨");
     el.querySelector("[data-end]").onclick = () => close();
     el.querySelector("[data-ok]").onclick = () => {
-      stopRing(); el.querySelector("[data-btns]").hidden = true; el.querySelector("[data-end]").hidden = false;
+      stopRing(); el.querySelector("[data-btns]").hidden = true; el.querySelector("[data-grid]").hidden = false;
       pickup(); stops.push(lineHum());
       t1 = Date.now(); const draw = () => { const s = Math.floor((Date.now() - t1) / 1000); st.textContent = `통화 중  ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
       draw(); tmr = setInterval(draw, 1000);
