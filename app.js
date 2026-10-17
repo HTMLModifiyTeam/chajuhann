@@ -172,18 +172,12 @@
 
   /* ================= 홈 ================= */
   function homeScreen() {
-    const memo = (P.memos || [])[0];
-    const pages = [
-      `${appBtn("gallery")}${appBtn("music")}${appBtn("camera")}${appBtn("radio")}`,
-      `<div class="wg wg-clock"><div><div class="t" data-now></div><div class="d">${dateLabel(TODAY)}</div></div><div class="w">서울<b>3°</b>흐림</div></div>${appBtn("internet")}${appBtn("calendar")}${appBtn("memo")}${appBtn("clock")}`,
-      `${memo ? `<button class="wg wg-memo" data-app="memo"><small>${esc(memo.date)}</small>${esc(memo.text)}</button>` : ""}${appBtn("email")}${appBtn("market")}${appBtn("settings")}`
-    ];
+    const page = `<div class="wg wg-clock"><div><div class="t" data-now></div><div class="d">${dateLabel(TODAY)}</div></div><div class="w">서울<b>9°</b>맑음</div></div>${["internet", "calendar", "memo", "clock", "gallery", "music", "camera", "settings"].map(id => appBtn(id)).join("")}`;
     const el = h(`<section class="scr home">${wallHTML()}
       <div class="hm-dots"></div>
-      <div class="hm-pages"><div class="hm-track">${pages.map(p => `<div class="hm-page">${p}</div>`).join("")}</div></div>
+      <div class="hm-pages"><div class="hm-track"><div class="hm-page">${page}</div></div></div>
       <nav class="dock">${appBtn("phone")}${appBtn("contacts")}${appBtn("message")}${appBtn("apps")}</nav>
     </section>`);
-    pager(el.querySelector(".hm-pages"), el.querySelector(".hm-track"), pages.length, 1, i => dots(el.querySelector(".hm-dots"), pages.length, i));
     el._refresh = sbIcons;
     return el;
   }
