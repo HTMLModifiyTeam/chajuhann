@@ -693,16 +693,38 @@
   function nowPlaying(i) {
     const s = P.music[i]; let on = true, p = 0;
     const el = h(`<section class="scr"><div class="tbar">재생 중</div>
-      <div class="mus-art"><svg viewBox="0 0 34 34">${G.music}</svg></div>
-      <div class="mus-t"><b>${esc(s.title)}</b><small>${esc(s.artist)}</small></div>
+      <div class="mus-art${s.sound ? " rec" : ""}"><svg viewBox="0 0 34 34">${G.music}</svg></div>
+      <div class="mus-t"><b>${esc(s.title)}</b><small>${esc(s.artist || "")}</small></div>
       <div class="mus-bar"><i></i></div>
-      <div class="mus-ctl"><button data-pv><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zM20 6v12L9 12z"/></svg></button><button data-pp></button><button data-nx><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM4 6v12l11-6z"/></svg></button></div></section>`);
-    const bar = el.querySelector(".mus-bar i"), pp = el.querySelector("[data-pp]");
+      <div class="mus-tm"><span data-cur>0:00</span><span data-dur>${s.sound ? "--:--" : ""}</span></div>
+      <div class="mus-ctl"><button data-pv><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zM20 6v12L9 12z"/></svg></button><button data-pp></button><button data-nx><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM4 6v12l11-6z"/></svg></button></div>
+      ${s.lines ? `<div class="mus-cap" data-cap></div>` : ""}</section>`);
+    const bar = el.querySelector(".mus-bar i"), pp = el.querySelector("[data-pp]"), cap = el.querySelector("[data-cap]");
     const ico = () => pp.innerHTML = on ? `<svg viewBox="0 0 24 24"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>` : `<svg viewBox="0 0 24 24"><path d="M7 5v14l12-7z"/></svg>`;
-    ico(); pp.onclick = () => { on = !on; ico(); };
-    const t = setInterval(() => { if (on) { p = Math.min(100, p + .5); bar.style.width = p + "%"; } }, 1000);
-    el._onClose = () => clearInterval(t);
-    el.querySelector("[data-pv]").onclick = () => { if (i > 0) { pop(); push(nowPlaying(i - 1)); } };
+    const fmt = x => Math.floor(x / 60) + ":" + String(Math.floor(x % 60)).padStart(2, "0");
+    let au = null, t;
+    if (s.sound) {
+      au = new Audio(s.sound); au.preload = "auto";
+      const cur = el.querySelector("[data-cur]"), dur = el.querySelector("[data-dur]");
+      au.onloadedmetadata = () => dur.textContent = fmt(au.duration);
+      au.ontimeupdate = () => {
+        const c = au.currentTime; cur.textContent = fmt(c); if (au.duration) bar.style.width = (c / au.duration * 100) + "%";
+        if (cap) { let L = null; s.lines.forEach(l => { if (c * 1000 >= l.at && c * 1000 < l.at + (l.ms || 3500)) L = l; });
+          const html = L ? (L.who ? `<b>${esc(L.who)}</b>` : "") + `<span${L.fx ? ' class="fx"' : ""}>${esc(L.text)}</span>` : "";
+          if (cap.innerHTML !== html) cap.innerHTML = html; }
+      };
+      au.onended = () => { on = false; ico(); };
+      au.onerror = () => { on = false; ico(); toast("파일을 재생할 수 없습니다."); };
+      au.play().catch(() => { on = false; ico(); });
+      pp.onclick = () => { on = !on; on ? au.play() : au.pause(); ico(); };
+      el.querySelector(".mus-bar").onclick = ev => { if (!au.duration) return; const r = ev.currentTarget.getBoundingClientRect(); au.currentTime = (ev.clientX - r.left) / r.width * au.duration; };
+    } else {
+      pp.onclick = () => { on = !on; ico(); };
+      t = setInterval(() => { if (on) { p = Math.min(100, p + .5); bar.style.width = p + "%"; } }, 1000);
+    }
+    ico();
+    el._onClose = () => { clearInterval(t); if (au) { au.pause(); au.src = ""; } };
+    el.querySelector("[data-pv]").onclick = () => { if (au && au.currentTime > 3) { au.currentTime = 0; return; } if (i > 0) { pop(); push(nowPlaying(i - 1)); } };
     el.querySelector("[data-nx]").onclick = () => { if (i < P.music.length - 1) { pop(); push(nowPlaying(i + 1)); } };
     return el;
   }
