@@ -52,9 +52,14 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 /* 모바일: 화면만 꽉 차게 + 아래 버튼 줄 */
 @media (max-width:520px){
   .gs-body{width:100%;height:100%;padding:0;border-radius:0;box-shadow:none;background:#000;display:flex;flex-direction:column;transform:none!important}
-  .gs-body:before,.gs-top,.close-phone{display:none}
+  .gs-body:before,.close-phone{display:none}
+  .gs-body{background:linear-gradient(90deg,#0c0d0f 0%,#1a1c20 8%,#121316 50%,#1a1c20 92%,#0c0d0f 100%)}
+  .gs-top{position:relative;flex:none;height:46px;padding-top:env(safe-area-inset-top)}
+  .gs-speaker{top:calc(19px + env(safe-area-inset-top))}
+  .gs-cam{top:calc(14px + env(safe-area-inset-top));right:15%}
+  .gs-sensor{top:calc(17px + env(safe-area-inset-top));left:15%}
   .gs-screen{width:100%;height:auto;flex:1;box-shadow:none}
-  .gs-keys{position:relative;height:50px;flex:none;padding:0 28px;background:#000;border-top:1px solid #1b1b1b}
+  .gs-keys{position:relative;height:54px;flex:none;padding:0 28px;background:transparent}
   .gk.home{height:34px;width:76px}
 }
 
