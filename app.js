@@ -497,7 +497,9 @@
     const el = h(`<section class="scr"><div class="tbar">${esc(nameOf(T.name))}<small>${esc(numberOf(T.name) === T.name ? "" : numberOf(T.name))}</small></div>
       <div class="scroll conv" data-conv>${T.msgs.map(bubble).join("")}</div>
       <form class="compose"><input placeholder="메시지 입력" enterkeyhint="send" autocomplete="off"><button>전송</button></form></section>`);
-    const conv = el.querySelector("[data-conv]"), inp = el.querySelector("input");
+    const conv = el.querySelector("[data-conv]"), inp = el.querySelector("input"), sendBtn = el.querySelector(".compose button");
+    const lockCompose = () => { inp.disabled = sendBtn.disabled = true; inp.value = ""; inp.placeholder = "메시지를 보낼 수 없습니다"; el.querySelector(".compose").classList.add("off"); };
+    if (T.blocked) lockCompose();
     requestAnimationFrame(() => conv.scrollTop = conv.scrollHeight);
     const add = m => { T.msgs.push(m); conv.insertAdjacentHTML("beforeend", bubble(m)); conv.scrollTop = conv.scrollHeight; };
     conv.addEventListener("click", e => { const f = e.target.closest("[data-file]"); if (f) push(fileViewer(f.dataset.file)); });
@@ -508,9 +510,25 @@
       if (([...T.msgs].reverse().find(m => m.date) || {}).date !== dl) add({ date: dl });
       add({ me: true, text, time: nowLabel() });
       if (T._new) { delete T._new; } const i = P.messages.indexOf(T); if (i >= 0) P.messages.splice(i, 1); P.messages.unshift(T);
-      const R = T.replies; if (R && (T._ri ?? -1) + 1 < R.length) { const r = R[T._ri = (T._ri ?? -1) + 1]; setTimeout(() => add({ text: r, time: nowLabel() }), 1800); }
+      if (T.blocked) return;
+      const C = (P.msgReplies || {})[T.name];   // 답장 설정. 없으면 (이미 세상을 떠난 사람 등) 아무 답도 오지 않음
+      if (!C) return;
+      const k = T._ri = (T._ri ?? -1) + 1;
+      if (C.block && k + 1 >= C.block) {   // 차단: 이번 메시지부터 전송 실패
+        T.blocked = true; lockCompose();
+        setTimeout(() => { const last = conv.querySelector(".bub.me:last-child"); if (last) last.classList.add("fail"); dialog("메시지 전송 실패", "상대방이 회원님의 메시지 수신을 차단하였습니다. 더 이상 메시지를 보낼 수 없습니다."); }, 1300);
+        return;
+      }
+      const batch = k < (C.replies || []).length ? C.replies[k] : (C.loop ? [C.loop[Math.floor(Math.random() * C.loop.length)]] : null);
+      if (!batch) return;
+      let at = 1400 + Math.random() * 1200;
+      [].concat(batch).forEach(r => { setTimeout(() => deliverSMS(T.name, r), at); at += 1100 + Math.min(2600, r.length * 45) + Math.random() * 700; });
     };
     return el;
+  }
+  function dialog(title, body) {   // 안드로이드 2.x 스타일 알림창
+    const d = h(`<div class="dlg"><div class="dlg-box"><div class="dlg-t"><i>!</i>${esc(title)}</div><div class="dlg-b">${esc(body)}</div><div class="dlg-k"><button>확인</button></div></div></div>`);
+    d.querySelector("button").onclick = () => d.remove(); $("#screen").appendChild(d);
   }
 
   /* ================= 문자 수신 (모르는 번호의 협박 문자) ================= */

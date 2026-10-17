@@ -367,3 +367,15 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .mus-cap{margin:4px 18px 0;min-height:58px;text-align:center;font-size:14px;line-height:1.5;color:#eee}
 .mus-cap b{display:block;font-size:11px;font-weight:500;color:#8fb7ff;margin-bottom:2px}
 .mus-cap .fx{color:#999;font-style:italic;font-size:12px}
+
+.compose.off input{background:#ccc;color:#666}
+.compose.off button{opacity:.5}
+.bub.me.fail .b{opacity:.75}
+.bub.me.fail small::before{content:"전송 실패 ";color:#ff5a4f}
+.dlg{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:0 22px}
+.dlg-box{width:100%;max-width:300px;background:#2b2c2f;border:1px solid #555;border-radius:4px;box-shadow:0 8px 30px rgba(0,0,0,.8);color:#eee}
+.dlg-t{display:flex;align-items:center;gap:8px;padding:12px 14px;font-size:16px;border-bottom:1px solid #4a4b4f;background:linear-gradient(#3b3c40,#2b2c2f)}
+.dlg-t i{display:inline-flex;width:20px;height:20px;border-radius:50%;background:#e8a300;color:#000;font-style:normal;font-weight:700;align-items:center;justify-content:center;font-size:13px}
+.dlg-b{padding:16px 14px;font-size:14px;line-height:1.55;color:#ddd}
+.dlg-k{padding:8px;background:#1d1e20;display:flex}
+.dlg-k button{flex:1;height:40px;border-radius:4px;background:linear-gradient(#f2f2f2,#bdbdbd);color:#111;font-size:15px}
