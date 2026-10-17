@@ -711,9 +711,9 @@
       const n = N.news[i], pool = N.comments, cm = [];
       for (let k = 0; k < 9; k++) cm.push(pool[(i * 7 + k * 5) % pool.length]);
       const nick = k => "abcdefghijklmnopqrstuvwxyz".substr((i * 3 + k * 7) % 22, 4) + "****";
-      const a = page(`${N.url}/news/${2018030700 + i}`, `
+      const a = page(`${N.url}/news/${2018040300 + i}`, `
         <div class="wb-top sm"><b class="wb-logo">${esc(N.name)} 뉴스</b></div>
-        <article class="wb-art"><h1>${esc(n.title)}</h1><p class="wb-meta">${esc(n.press)} | 입력 2018.03.07 ${esc(n.time)}</p>
+        <article class="wb-art"><h1>${esc(n.title)}</h1><p class="wb-meta">${esc(n.press)} | 입력 ${esc(n.time)}</p>
           <div class="wb-img" style="background:${tint(i + 5)}">사진</div>
           ${n.body.map(p => `<p>${esc(p)}</p>`).join("")}
           <p class="wb-rep">${esc(n.press)} 기자 · 무단 전재 및 재배포 금지</p></article>
