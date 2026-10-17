@@ -152,15 +152,29 @@
         ${missed ? `<div>${IC.missed}부재중 전화 ${missed}통</div>` : ""}
         ${unread ? `<div>${IC.sms}새 메시지 ${unread}개</div>` : ""}
       </div>
-      <div class="lk-slide"><span>밀어서 잠금 해제</span><div class="lk-knob"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" fill="currentColor"/><path d="M8 11V8a4 4 0 0 1 8 0" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></div></div>
+      <div class="lk-pat"><p data-msg>잠금 해제 패턴을 그리세요</p><div class="pat" data-pat><svg data-svg></svg>${[0,1,2,3,4,5,6,7,8].map(i => `<i data-d="${i}"></i>`).join("")}</div></div>
     </section>`);
-    const track = el.querySelector(".lk-slide"), knob = el.querySelector(".lk-knob");
-    let sx = null, max = 0;
-    knob.addEventListener("pointerdown", e => { sx = e.clientX; max = track.clientWidth - knob.offsetWidth - 10; knob.setPointerCapture(e.pointerId); knob.style.transition = "none"; });
-    knob.addEventListener("pointermove", e => { if (sx === null) return; knob.style.transform = `translateX(${Math.max(0, Math.min(max, e.clientX - sx))}px)`; });
-    const up = e => { if (sx === null) return; const dx = e.clientX - sx; sx = null; knob.style.transition = "transform .2s";
-      if (dx > max * .75) { knob.style.transform = `translateX(${max}px)`; setTimeout(unlock, 150); } else knob.style.transform = ""; };
-    knob.addEventListener("pointerup", up); knob.addEventListener("pointercancel", up);
+    /* 3×3 패턴 잠금: 점 두 개 이상만 이으면 어떤 모양이든 열림 */
+    const pat = el.querySelector("[data-pat]"), svg = el.querySelector("[data-svg]"), msg = el.querySelector("[data-msg]"), dots = [...pat.querySelectorAll("i")];
+    let path = null, cur = null, done = false;
+    const ctr = i => { const r = pat.getBoundingClientRect(), d = dots[i].getBoundingClientRect(); return [d.left + d.width / 2 - r.left, d.top + d.height / 2 - r.top]; };
+    const draw = state => {
+      const r = pat.getBoundingClientRect(); svg.setAttribute("viewBox", `0 0 ${r.width} ${r.height}`);
+      const pts = (path || []).map(ctr); if (cur && pts.length && !state) pts.push(cur);
+      svg.innerHTML = pts.length > 1 ? `<polyline points="${pts.map(p => p.join(",")).join(" ")}" class="${state || ""}"/>` : "";
+      dots.forEach((d, i) => { d.className = path && path.includes(i) ? "on " + (state || "") : ""; });
+    };
+    const hit = (x, y) => { const r = pat.getBoundingClientRect(); for (let i = 0; i < 9; i++) { const [cx, cy] = ctr(i); if (Math.hypot(x - r.left - cx, y - r.top - cy) < r.width / 7.5) return i; } return -1; };
+    const add = i => { if (i < 0 || path.includes(i)) return;
+      const l = path[path.length - 1];   // 사이에 낀 점은 자동으로 포함
+      if (l !== undefined) { const m = (l + i) / 2; if ((l + i) % 2 === 0 && Math.abs((l % 3) - (i % 3)) !== 1 && Math.abs(Math.floor(l / 3) - Math.floor(i / 3)) !== 1 && !path.includes(m)) path.push(m); }
+      path.push(i); if (navigator.vibrate) try { navigator.vibrate(12); } catch (e) {} };
+    pat.addEventListener("pointerdown", e => { if (done) return; path = []; pat.setPointerCapture(e.pointerId); const r = pat.getBoundingClientRect(); cur = [e.clientX - r.left, e.clientY - r.top]; add(hit(e.clientX, e.clientY)); msg.textContent = "완료되면 손가락을 떼세요"; draw(); });
+    pat.addEventListener("pointermove", e => { if (!path || done) return; const r = pat.getBoundingClientRect(); cur = [e.clientX - r.left, e.clientY - r.top]; add(hit(e.clientX, e.clientY)); draw(); });
+    const up = () => { if (!path || done) return; cur = null;
+      if (path.length >= 2) { done = true; msg.textContent = "패턴이 맞습니다"; draw("ok"); setTimeout(unlock, 350); }
+      else { msg.textContent = path.length ? "점을 2개 이상 연결하세요. 다시 시도하세요." : "잠금 해제 패턴을 그리세요"; draw("bad"); setTimeout(() => { if (!done) { path = null; draw(); } }, 900); } };
+    pat.addEventListener("pointerup", up); pat.addEventListener("pointercancel", up);
     return el;
   }
   function unlock() {
@@ -569,11 +583,10 @@
   let harassOn = false, lastH = -1;
   function harassLoop() {
     if (harassOn || !(P.harass || []).length) return; harassOn = true;
-    const next = () => setTimeout(burst, rnd(6, 10) * 1000);   // 6초~10초 간격
+    const next = () => setTimeout(burst, rnd(7, 14) * 1000);   // 7초~14초 간격
     function burst() {
-      const n = rnd(1, 4); let num = randomNumber(), at = 0;
+      const n = rnd(1, 3), num = randomNumber(); let at = 0;   // 한 번에 한 명이 1~3개
       for (let i = 0; i < n; i++) {
-        if (i && Math.random() < .6) num = randomNumber();   // 대부분은 매번 다른 번호
         let k; do { k = rnd(0, P.harass.length - 1); } while (k === lastH && P.harass.length > 1); lastH = k;
         const who = num, txt = P.harass[k];
         setTimeout(() => deliverSMS(who, txt), at); at += rnd(1500, 4500);
