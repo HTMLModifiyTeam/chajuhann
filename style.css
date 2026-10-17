@@ -256,3 +256,11 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .ticker svg{width:18px;height:18px;flex:none}
 .ticker b{flex:none;font-weight:600}
 .ticker span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#ddd}
+.ic-btns{margin-top:auto;margin-bottom:22px;width:86%;display:flex;gap:12px}
+.ic-btns[hidden],.cs-end[hidden]{display:none}
+.ic-btns button{flex:1;height:58px;border-radius:6px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:500}
+.ic-btns svg{width:26px;height:26px}
+.ic-ok{background:linear-gradient(#78d65a,#2f9419);box-shadow:inset 0 0 0 1px #1f6b0f}
+.ic-no{background:linear-gradient(#ff6b5e,#c4170a);box-shadow:inset 0 0 0 1px #8a0f05}
+.ic-no svg{transform:rotate(135deg)}
+.incall .cs-state{color:#ffb35c}

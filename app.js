@@ -366,6 +366,7 @@
     return () => { if (done) return; done = true; const t2 = ctx.currentTime; g.gain.cancelScheduledValues(t2); g.gain.setValueAtTime(g.gain.value, t2); g.gain.linearRampToValueAtTime(0, t2 + .25); try { s.stop(t2 + .3); hum.stop(t2 + .3); } catch (e) {} };
   }
   function placeCall(target) {
+    inCall = true;
     const name = nameOf(target), number = numberOf(target);
     let sc = (P.callScripts || {})[name] || (P.callScripts || {})[number];
     if (sc) {   // 두 번째 전화부터는 again 대본 (reject: 짧게 울리다 끊김)
@@ -393,9 +394,9 @@
       if (ended) return; ended = true; timers.forEach(clearTimeout); clearInterval(tmr); stopRing(); stops.forEach(f => f());
       const sec = t1 ? Math.floor((Date.now() - t1) / 1000) : 0;
       P.calls.unshift({ name: contactBy(target) ? name : number, dir: "out", when: nowLabel(), length: t1 ? `${Math.floor(sec / 60)}분 ${sec % 60}초` : "" });
-      st.textContent = "통화 종료"; setTimeout(() => { if (stack.includes(el)) pop(); }, 900);
+      st.textContent = "통화 종료"; setTimeout(() => { if (stack.includes(el)) pop(); }, 900); inCall = false;
     };
-    el._onClose = () => { stopRing(); stops.forEach(f => f()); if (!ended) { ended = true; timers.forEach(clearTimeout); clearInterval(tmr); } };
+    el._onClose = () => { inCall = false; stopRing(); stops.forEach(f => f()); if (!ended) { ended = true; timers.forEach(clearTimeout); clearInterval(tmr); } };
     el.querySelector("[data-end]").onclick = end;
     if (sc) {
       timers.push(setTimeout(() => {
@@ -472,7 +473,7 @@
     else T.unread = (T.unread || 0) + 1;
     stack.forEach(s => s._msgList && s._refresh());
     sbIcons();
-    if (layer.classList.contains("open")) { smsTone(); if (!(top && top._thread === T)) ticker(name, text); }
+    if (layer.classList.contains("open")) { smsTone(); if (!(top && top._thread === T) && !(top && top.classList.contains("callscr"))) ticker(name, text); }
   }
   const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
   function randomNumber() {
@@ -484,7 +485,7 @@
   let harassOn = false, lastH = -1;
   function harassLoop() {
     if (harassOn || !(P.harass || []).length) return; harassOn = true;
-    const next = () => setTimeout(burst, rnd(60, 180) * 1000);   // 1~3분 간격
+    const next = () => setTimeout(burst, rnd(4, 60) * 1000);   // 4초~1분 간격
     function burst() {
       const n = rnd(1, 4); let num = randomNumber(), at = 0;
       for (let i = 0; i < n; i++) {
@@ -495,6 +496,64 @@
       }
       next();
     }
+    next();
+  }
+
+  /* ================= 모르는 번호의 협박 전화 (30초~2분마다) ================= */
+  let inCall = false, lastC = -1;
+  function ringtone() {   // 수신 벨소리 (짧은 마림바 같은 반복음) + 진동
+    const ctx = audioCtx; let iv = null, done = false;
+    const play = () => {
+      try { navigator.vibrate && navigator.vibrate([400, 200, 400]); } catch (e) {}
+      if (!ctx) return; const t = ctx.currentTime;
+      [659, 784, 988, 784, 659, 523].forEach((f, i) => { const o = ctx.createOscillator(), g = ctx.createGain(), s = t + i * .16;
+        o.type = "triangle"; o.frequency.value = f; g.gain.setValueAtTime(0, s); g.gain.linearRampToValueAtTime(.09, s + .01); g.gain.exponentialRampToValueAtTime(.001, s + .3);
+        o.connect(g); g.connect(ctx.destination); o.start(s); o.stop(s + .32); });
+    };
+    play(); iv = setInterval(play, 2200);
+    return () => { if (done) return; done = true; clearInterval(iv); try { navigator.vibrate && navigator.vibrate(0); } catch (e) {} };
+  }
+  function incomingThreat() {
+    const L = P.threatCalls || []; if (!L.length) return;
+    let k; do { k = rnd(0, L.length - 1); } while (k === lastC && L.length > 1); lastC = k;
+    const lines = L[k], number = randomNumber();
+    inCall = true;
+    const el = h(`<section class="scr callscr incall">
+      <div class="cs-state" data-state>수신 전화</div>
+      <div class="cs-ph">${AV}</div>
+      <div class="cs-name">${esc(number)}</div><div class="cs-num">저장되지 않은 번호</div>
+      <div class="cs-line" data-line></div>
+      <div class="ic-btns" data-btns><button class="ic-ok" data-ok>${IC.handset}통화</button><button class="ic-no" data-no>${IC.handset}거절</button></div>
+      <button class="cs-end" data-end hidden>${IC.handset}종료</button></section>`);
+    const st = el.querySelector("[data-state]"), line = el.querySelector("[data-line]"), timers = [], stops = [];
+    let stopRing = ringtone(), t1 = null, tmr = null, done = false;
+    const close = (dir) => {
+      if (done) return; done = true; stopRing(); timers.forEach(clearTimeout); clearInterval(tmr); stops.forEach(f => f());
+      const sec = t1 ? Math.floor((Date.now() - t1) / 1000) : 0;
+      P.calls.unshift(t1 ? { name: number, dir: "in", when: nowLabel(), length: `${Math.floor(sec / 60)}분 ${sec % 60}초` } : { name: number, dir: "missed", when: nowLabel() });
+      sbIcons(); stack.forEach(s => s._refresh && s !== el && s._refresh());
+      st.textContent = dir || "통화 종료"; el.querySelector("[data-btns]").hidden = true;
+      setTimeout(() => { if (stack.includes(el)) { const i = stack.indexOf(el); if (i === stack.length - 1) pop(); else { stack.splice(i, 1); el.remove(); } } inCall = false; }, 900);
+    };
+    el._onClose = () => { if (!done) close(); };
+    el.querySelector("[data-no]").onclick = () => close("거절됨");
+    el.querySelector("[data-end]").onclick = () => close();
+    el.querySelector("[data-ok]").onclick = () => {
+      stopRing(); el.querySelector("[data-btns]").hidden = true; el.querySelector("[data-end]").hidden = false;
+      pickup(); stops.push(lineHum());
+      t1 = Date.now(); const draw = () => { const s = Math.floor((Date.now() - t1) / 1000); st.textContent = `통화 중  ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
+      draw(); tmr = setInterval(draw, 1000);
+      let at = 1200;
+      lines.forEach(txt => { timers.push(setTimeout(() => { line.textContent = txt; line.classList.add("show"); }, at)); at += Math.max(2200, txt.length * 120); });
+      timers.push(setTimeout(() => line.classList.remove("show"), at)); timers.push(setTimeout(() => close(), at + 700));
+    };
+    timers.push(setTimeout(() => { if (!t1) close("부재중 전화"); }, 30000));
+    push(el);
+  }
+  let threatOn = false;
+  function threatLoop() {
+    if (threatOn) return; threatOn = true;
+    const next = () => setTimeout(() => { if (!inCall && layer.classList.contains("open")) incomingThreat(); next(); }, rnd(30, 120) * 1000);   // 30초~2분 간격
     next();
   }
 
@@ -608,7 +667,7 @@
   function openPhone() {
     if (layer.classList.contains("open")) return;
     if (t0 === null) t0 = Date.now();
-    harassLoop();
+    harassLoop(); threatLoop();
     try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); else if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) {}
     Object.values(P.callScripts || {}).forEach(s => (s.lines || []).forEach(l => l && l.sound && loadSound(l.sound)));
     fit();
