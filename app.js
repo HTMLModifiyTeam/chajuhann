@@ -451,7 +451,7 @@
           const playMsg = () => {
             stage = 1; if (stopMsg) stopMsg();
             guide(`새 메시지가 1건 있습니다.`, 2200, () => guide(VM.label || "", 3000, () => {
-              say(""); stopMsg = playSound(VM.sound); stops.push(stopMsg);
+              say(""); stopMsg = VM.sound ? playSound(VM.sound) : () => {}; stops.push(stopMsg);
               (VM.lines || []).forEach(l => timers.push(setTimeout(() => { if (stage === 1) say(l.text); }, l.at)));
               timers.push(setTimeout(() => { stage = 2; say("메시지가 끝났습니다. 다시 들으시려면 1번, 종료하시려면 통화 종료를 눌러 주세요."); }, (VM.ms || 19000) + 400));
             }));
