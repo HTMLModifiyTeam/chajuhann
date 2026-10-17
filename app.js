@@ -405,9 +405,12 @@
     el.querySelectorAll("[data-dk]").forEach(b => b.onclick = () => { const k = b.dataset.dk; dtmf(k); digits.textContent = (digits.textContent + k).slice(-14); onKey && onKey(k); });
   }
   function placeCall(target) {
-    inCall = true;
     const isVM = target === "1" || target === "음성사서함";
     const name = isVM ? "음성사서함" : nameOf(target), number = isVM ? "소리샘" : numberOf(target);
+    if (!isVM && P.messages.some(t => t.blocked && (t.name === name || t.name === number))) {   // 나를 차단한 사람에겐 전화도 안 걸림
+      dialog("통화 연결 실패", "상대방의 요청으로 이 번호와의 통화가 제한되었습니다. 전화를 걸 수 없습니다."); return;
+    }
+    inCall = true;
     let sc = isVM ? { ringMs: 1500, voicemail: true, lines: [] } : (P.callScripts || {})[name] || (P.callScripts || {})[number];
     if (sc) {   // 두 번째 전화부터는 again 대본 (reject: 짧게 울리다 끊김)
       sc._n = (sc._n || 0) + 1;
@@ -566,7 +569,7 @@
   let harassOn = false, lastH = -1;
   function harassLoop() {
     if (harassOn || !(P.harass || []).length) return; harassOn = true;
-    const next = () => setTimeout(burst, rnd(4, 60) * 1000);   // 4초~1분 간격
+    const next = () => setTimeout(burst, rnd(6, 10) * 1000);   // 6초~10초 간격
     function burst() {
       const n = rnd(1, 4); let num = randomNumber(), at = 0;
       for (let i = 0; i < n; i++) {
@@ -775,9 +778,10 @@
       <div class="wb-foot">${esc(N.name)} · PC버전 · 로그인<br>© NURI Corp.</div>`);
     el.addEventListener("click", e => { const b = e.target.closest("[data-art]"); if (b) push(article(+b.dataset.art)); });
     function article(i) {
-      const n = N.news[i], pool = N.comments, cm = [];
-      for (let k = 0; k < 9; k++) cm.push(pool[(i * 7 + k * 5) % pool.length]);
-      const nick = k => "abcdefghijklmnopqrstuvwxyz".substr((i * 3 + k * 7) % 22, 4) + "****";
+      const n = N.news[i], cm = n.comments || [];   // 기사마다 다른 댓글
+      const NICKS = ["kjh7****", "정의로운****", "sky_****", "lee0****", "달빛고양****", "anon****", "parkm****", "서울시민****", "hjk9****", "무명****", "jjang****", "엄마는강하****", "bluew****", "소시민****", "dkfk****", "yoon****", "현실주****", "mnb1****", "강남구****", "qwer****", "새벽세시****", "ch0i****", "그냥지나가****", "zzzz****"];
+      const nick = k => NICKS[(i * 5 + k * 7) % NICKS.length];
+      const ago = k => ["방금 전", "3분 전", "12분 전", "27분 전", "41분 전", "1시간 전", "1시간 전", "2시간 전", "3시간 전"][k] || "5시간 전";
       const a = page(`${N.url}/news/${2018040300 + i}`, `
         <div class="wb-top sm"><b class="wb-logo">${esc(N.name)} 뉴스</b></div>
         <article class="wb-art"><h1>${esc(n.title)}</h1><p class="wb-meta">${esc(n.press)} | 입력 ${esc(n.time)}</p>
@@ -785,7 +789,7 @@
           ${n.body.map(p => `<p>${esc(p)}</p>`).join("")}
           <p class="wb-rep">${esc(n.press)} 기자 · 무단 전재 및 재배포 금지</p></article>
         <div class="wb-box"><h3>댓글 <em>${n.cm.toLocaleString()}</em></h3>
-          ${cm.map((c, k) => `<div class="wb-cm"><b>${nick(k)}</b><small>${k + 1}분 전</small><p>${esc(c)}</p><span>공감 ${(((i + 3) * (k + 7) * 37) % 900 + 40)} · 비공감 ${(((i + 1) * (k + 2) * 7) % 30)}</span></div>`).join("")}
+          ${cm.map((c, k) => `<div class="wb-cm${k < 2 ? " best" : ""}">${k < 2 ? `<em class="bst">BEST</em>` : ""}<b>${nick(k)}</b><small>${ago(k)}</small><p>${esc(c)}</p><span>공감 ${(k < 2 ? 1800 - k * 430 : 0) + (((i + 3) * (k + 7) * 37) % 600 + 12)} · 비공감 ${(((i + 1) * (k + 2) * 13) % (c.includes("ㅋ") ? 40 : 260))}${k % 3 === 1 ? ` · 답글 ${((i + k) * 7) % 40 + 2}` : ""}</span></div>`).join("")}
           <div class="wb-more">댓글 더보기 ▼</div></div>`);
       return a;
     }
