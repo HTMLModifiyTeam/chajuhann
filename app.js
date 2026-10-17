@@ -274,6 +274,22 @@
     render(tab);
     return el;
   }
+  /* 통화 소리: 수신음(뚜— 뚜—)과 삐 소리 */
+  let audioCtx = null;
+  function ringback() {
+    const ctx = audioCtx; if (!ctx) return () => {};
+    try { if (ctx.state === "suspended") ctx.resume(); } catch (e) {}
+    const g = ctx.createGain(); g.gain.value = 0; g.connect(ctx.destination);
+    const os = [440, 480].map(f => { const o = ctx.createOscillator(); o.frequency.value = f; o.connect(g); o.start(); return o; });
+    const cycle = () => { const t = ctx.currentTime; g.gain.setValueAtTime(.05, t); g.gain.setValueAtTime(0, t + 1); };
+    cycle(); const iv = setInterval(cycle, 3000); let done = false;
+    return () => { if (done) return; done = true; clearInterval(iv); try { os.forEach(o => o.stop()); g.disconnect(); } catch (e) {} };
+  }
+  function beep() {
+    const ctx = audioCtx; if (!ctx) return;
+    const g = ctx.createGain(), o = ctx.createOscillator(); o.frequency.value = 1000; g.gain.value = .06;
+    o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + .6);
+  }
   function placeCall(target) {
     const name = nameOf(target), number = numberOf(target);
     const sc = (P.callScripts || {})[name] || (P.callScripts || {})[number];
@@ -284,28 +300,29 @@
       <div class="cs-line" data-line></div>
       <button class="cs-end" data-end>${IC.handset}종료</button></section>`);
     const timers = [], st = el.querySelector("[data-state]"), line = el.querySelector("[data-line]");
-    let t1 = null, tmr = null, ended = false;
+    let t1 = null, tmr = null, ended = false; const stopRing = ringback();
     const say = (txt, ms) => { line.textContent = txt; line.classList.add("show"); };
     const end = () => {
-      if (ended) return; ended = true; timers.forEach(clearTimeout); clearInterval(tmr);
+      if (ended) return; ended = true; timers.forEach(clearTimeout); clearInterval(tmr); stopRing();
       const sec = t1 ? Math.floor((Date.now() - t1) / 1000) : 0;
       P.calls.unshift({ name: contactBy(target) ? name : number, dir: "out", when: nowLabel(), length: t1 ? `${Math.floor(sec / 60)}분 ${sec % 60}초` : "" });
       st.textContent = "통화 종료"; setTimeout(() => { if (stack.includes(el)) pop(); }, 900);
     };
-    el._onClose = () => { if (!ended) { ended = true; timers.forEach(clearTimeout); clearInterval(tmr); } };
+    el._onClose = () => { stopRing(); if (!ended) { ended = true; timers.forEach(clearTimeout); clearInterval(tmr); } };
     el.querySelector("[data-end]").onclick = end;
     if (sc) {
       timers.push(setTimeout(() => {
+        stopRing();
         if (!sc.dead) {   // dead: 없는 번호 안내만 나오고 통화는 연결되지 않음
           t1 = Date.now(); const draw = () => { const s = Math.floor((Date.now() - t1) / 1000); st.textContent = `통화 중  ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
           draw(); tmr = setInterval(draw, 1000);
         }
         let at = 900;
-        (sc.lines || []).forEach(l => { const txt = typeof l === "string" ? l : l.text, ms = (l && l.ms) || 2600; timers.push(setTimeout(() => say(txt), at)); at += ms; });
+        (sc.lines || []).forEach(l => { const txt = typeof l === "string" ? l : l.text, ms = (l && l.ms) || 2600; timers.push(setTimeout(() => { if (l && l.beep) beep(); say(txt); }, at)); at += ms; });
         timers.push(setTimeout(() => { line.classList.remove("show"); }, at)); timers.push(setTimeout(end, at + 900));
       }, sc.ringMs || 2600));
     } else {
-      timers.push(setTimeout(() => say("전화를 받지 않아 소리샘으로 연결됩니다."), 4200));
+      timers.push(setTimeout(() => { stopRing(); say("전화를 받지 않아 소리샘으로 연결됩니다."); }, 4200));
       timers.push(setTimeout(end, 7000));
     }
     push(el);
@@ -453,6 +470,7 @@
   function openPhone() {
     if (layer.classList.contains("open")) return;
     if (t0 === null) t0 = Date.now();
+    try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); else if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) {}
     fit();
     if (!stack.length) { push(lockScreen()); }
     sbIcons(); tick();
