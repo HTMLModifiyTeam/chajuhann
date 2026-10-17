@@ -468,7 +468,7 @@
   /* ================= 메시지 ================= */
   const threadFor = name => P.messages.find(t => t.name === name) || { name, msgs: [], _new: true };
   function threadRows() {
-    return P.messages.map((t, i) => { const lm = [...t.msgs].reverse().find(m => m.text || m.file) || {}, last = lm.file ? { text: "[파일] " + lm.file, time: lm.time } : lm; const d = [...t.msgs].reverse().find(m => m.date);
+    return P.messages.map((t, i) => { const lm = [...t.msgs].reverse().find(m => m.text || m.file || m.audio) || {}, last = lm.file || lm.audio ? { text: "[파일] " + (lm.file || lm.audio), time: lm.time } : lm; const d = [...t.msgs].reverse().find(m => m.date);
       return `<button class="row${t.unread ? " unread" : ""}" data-thread="${i}" style="width:100%;text-align:left"><span class="ph">${AV}</span><span class="tx"><b>${esc(nameOf(t.name))}</b><small>${esc(last.text || "")}</small></span><span class="rt">${esc((() => { const md = d && d.date.match(/(\d+)월 (\d+)일/); return md && !(+md[1] === TODAY.getMonth() + 1 && +md[2] === TODAY.getDate()) ? `${md[1]}월 ${md[2]}일` : (last.time || ""); })())}${t.unread ? `<br><span class="cnt">${t.unread}</span>` : ""}</span></button>`; }).join("") || `<div class="empty">메시지가 없습니다.</div>`;
   }
   function messagesApp() {
@@ -479,7 +479,7 @@
   }
   function convScreen(T) {
     T.unread = 0; sbIcons();
-    const bubble = m => m.date ? `<div class="date"><span>${esc(m.date)}</span></div>` : `<div class="bub${m.me ? " me" : ""}">${m.file ? `<button class="b fileb" data-file="${esc(m.file)}"><i>PDF</i><span><b>${esc(m.file)}</b><small>${esc(m.size || "")}</small></span></button>` : `<div class="b">${esc(m.text)}</div>`}<small>${esc(m.time || "")}</small></div>`;
+    const bubble = m => m.date ? `<div class="date"><span>${esc(m.date)}</span></div>` : `<div class="bub${m.me ? " me" : ""}">${m.file || m.audio ? `<button class="b fileb${m.audio ? " aud" : ""}" data-file="${esc(m.file || m.audio)}"><i>${m.audio ? "♪" : "PDF"}</i><span><b>${esc(m.file || m.audio)}</b><small>${esc(m.size || "")}</small></span></button>` : `<div class="b">${esc(m.text)}</div>`}<small>${esc(m.time || "")}</small></div>`;
     const el = h(`<section class="scr"><div class="tbar">${esc(nameOf(T.name))}<small>${esc(numberOf(T.name) === T.name ? "" : numberOf(T.name))}</small></div>
       <div class="scroll conv" data-conv>${T.msgs.map(bubble).join("")}</div>
       <form class="compose"><input placeholder="메시지 입력" enterkeyhint="send" autocomplete="off"><button>전송</button></form></section>`);
@@ -601,7 +601,26 @@
     next();
   }
 
+  function recPlayer(name, F) {   // 녹음 파일: 재생하면 잡음 위로 대화가 한 줄씩
+    const el = h(`<section class="scr"><div class="tbar" style="font-size:14px">${esc(name)}</div>
+      <div class="rp"><div class="rp-art">♪</div><div class="rp-bar"><i data-bar></i></div><div class="rp-t"><span data-cur>0:00</span><span>${esc(F.length || "")}</span></div>
+      <button class="rp-play" data-play>▶</button><div class="rp-lines scroll" data-lines></div></div></section>`);
+    const lines = el.querySelector("[data-lines]"), bar = el.querySelector("[data-bar]"), cur = el.querySelector("[data-cur]"), btn = el.querySelector("[data-play]");
+    const [mm, ss] = (F.length || "1:00").split(":").map(Number), total = (mm * 60 + ss) * 1000;
+    let timers = [], stopHum = null, t0r = 0, tick = null, playing = false;
+    const stop = () => { timers.forEach(clearTimeout); timers = []; clearInterval(tick); if (stopHum) stopHum(); stopHum = null; playing = false; btn.textContent = "▶"; };
+    btn.onclick = () => {
+      if (playing) { stop(); return; }
+      playing = true; btn.textContent = "■"; lines.innerHTML = ""; t0r = Date.now(); stopHum = lineHum();
+      tick = setInterval(() => { const e = Math.min(total, Date.now() - t0r), s = Math.floor(e / 1000); cur.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; bar.style.width = (e / total * 100) + "%"; if (e >= total) stop(); }, 250);
+      const step = total / (F.lines.length + 1);
+      F.lines.forEach((l, i) => timers.push(setTimeout(() => { lines.insertAdjacentHTML("beforeend", `<p class="${l.who ? "" : "rp-sys"}">${l.who ? `<b class="w${l.who.length}">${esc(l.who)}</b>` : ""}${esc(l.text)}</p>`); lines.scrollTop = lines.scrollHeight; }, step * (i + .6))));
+    };
+    el._onClose = stop;
+    return el;
+  }
   function fileViewer(name) {
+    if (((P.files || {})[name] || {}).audio) return recPlayer(name, P.files[name]);
     const F = (P.files || {})[name] || { blocks: [{ p: "파일을 열 수 없습니다." }] };
     const B = b => b.stamp ? `<div class="dv-stamp">${esc(b.stamp)}</div>` : b.small ? `<p class="dv-small">${esc(b.small)}</p>` : b.h ? `<h1>${esc(b.h).replace(/\n/g, "<br>")}</h1>` : b.h2 ? `<h2>${esc(b.h2)}</h2>`
       : b.quote ? `<blockquote>${esc(b.quote)}</blockquote>` : b.table ? `<table>${b.table.map((r, i) => `<tr>${r.map(c => i ? `<td>${esc(c)}</td>` : `<th>${esc(c)}</th>`).join("")}</tr>`).join("")}</table>` : `<p>${esc(b.p || "")}</p>`;
