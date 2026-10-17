@@ -175,7 +175,7 @@
     const memo = (P.memos || [])[0];
     const pages = [
       `${appBtn("gallery")}${appBtn("music")}${appBtn("camera")}${appBtn("radio")}`,
-      `<div class="wg wg-clock"><div><div class="t" data-now></div><div class="d">${dateLabel(TODAY)}</div></div><div class="w">서울<b>-4°</b>맑음</div></div>${appBtn("internet")}${appBtn("calendar")}${appBtn("memo")}${appBtn("clock")}`,
+      `<div class="wg wg-clock"><div><div class="t" data-now></div><div class="d">${dateLabel(TODAY)}</div></div><div class="w">서울<b>3°</b>흐림</div></div>${appBtn("internet")}${appBtn("calendar")}${appBtn("memo")}${appBtn("clock")}`,
       `${memo ? `<button class="wg wg-memo" data-app="memo"><small>${esc(memo.date)}</small>${esc(memo.text)}</button>` : ""}${appBtn("email")}${appBtn("market")}${appBtn("settings")}`
     ];
     const el = h(`<section class="scr home">${wallHTML()}
@@ -296,8 +296,10 @@
     el.querySelector("[data-end]").onclick = end;
     if (sc) {
       timers.push(setTimeout(() => {
-        t1 = Date.now(); const draw = () => { const s = Math.floor((Date.now() - t1) / 1000); st.textContent = `통화 중  ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
-        draw(); tmr = setInterval(draw, 1000);
+        if (!sc.dead) {   // dead: 없는 번호 안내만 나오고 통화는 연결되지 않음
+          t1 = Date.now(); const draw = () => { const s = Math.floor((Date.now() - t1) / 1000); st.textContent = `통화 중  ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
+          draw(); tmr = setInterval(draw, 1000);
+        }
         let at = 900;
         (sc.lines || []).forEach(l => { const txt = typeof l === "string" ? l : l.text, ms = (l && l.ms) || 2600; timers.push(setTimeout(() => say(txt), at)); at += ms; });
         timers.push(setTimeout(() => { line.classList.remove("show"); }, at)); timers.push(setTimeout(end, at + 900));
