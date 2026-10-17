@@ -393,3 +393,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .pat i.on{transform:scale(1.35);box-shadow:0 0 0 3px #4aa3ff,0 0 10px #4aa3ff}
 .pat i.on.ok{box-shadow:0 0 0 3px #4fd14f,0 0 10px #4fd14f}
 .pat i.on.bad{box-shadow:0 0 0 3px #ff4b3e,0 0 10px #ff4b3e}
+/* 밝은 배경화면에서 글자 잘 보이게 */
+.lk-date,.lk-time{text-shadow:0 1px 4px rgba(0,0,0,.55)}
+.wg-clock{background:linear-gradient(rgba(0,20,60,.28),rgba(0,20,60,.14));text-shadow:0 1px 3px rgba(0,0,0,.45)}
+.home .app span,.home .app small,.home .app{ text-shadow:0 1px 3px rgba(0,0,0,.75)}

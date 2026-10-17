@@ -460,9 +460,11 @@
           draw(); tmr = setInterval(draw, 1000);
         }
         if (sc.voicemail) {   // 소리샘. 전체 사서함(1번 길게)은 메시지를 번호로 골라 듣고, 번호별 메시지는 걸기만 해도 안내
-          const multi = sc.voicemail === true;
-          const list = multi ? (P.voicemailBox || []).map(n => (P.callScripts[n] || {}).voicemail).filter(Boolean) : [sc.voicemail];
-          const ORD = ["첫", "두", "세", "네", "다섯"];
+          const box = sc.voicemail === true;   // 전체 사서함. 항목은 "이름" 또는 "이름#번호"(그 사람의 n번째 메시지)
+          const vmOf = e => { const [n, k] = e.split("#"), v = (P.callScripts[n] || {}).voicemail; return v ? [].concat(v)[k ? +k - 1 : 0] : null; };
+          const list = box ? (P.voicemailBox || []).map(vmOf).filter(Boolean) : [].concat(sc.voicemail);
+          const multi = box || list.length > 1;
+          const ORD = ["첫", "두", "세", "네", "다섯", "여섯", "일곱", "여덟", "아홉"];
           let stage = 0, stopMsg = null;
           const guide = (txt, ms, then) => { say(txt); timers.push(setTimeout(() => then && then(), ms)); };
           const menu = () => { stage = 2; say(`새 메시지가 ${list.length}건 있습니다. ` + list.map((_, i) => `${ORD[i]} 번째 메시지는 ${i + 1}번`).join(", ") + "을 눌러 주세요."); };
@@ -475,7 +477,7 @@
             });
             intro ? guide(intro, 2200, go) : go();
           };
-          timers.push(setTimeout(() => say(multi ? "음성 사서함 열람을 원하시면 1번을 눌러 주세요." : "이 번호로 남겨진 음성 메시지가 1건 있습니다. 열람을 원하시면 1번을 눌러 주세요."), 900));
+          timers.push(setTimeout(() => say(box ? "음성 사서함 열람을 원하시면 1번을 눌러 주세요." : `이 번호로 남겨진 음성 메시지가 ${list.length}건 있습니다. 열람을 원하시면 1번을 눌러 주세요.`), 900));
           onKey = k => {
             if (stage === 1) return;
             const n = +k;
@@ -539,10 +541,11 @@
       const batch = k < (C.replies || []).length ? C.replies[k] : (C.loop ? [C.loop[Math.floor(Math.random() * C.loop.length)]] : null);
       if (!batch) return;
       let at = 1400 + Math.random() * 1200;
-      [].concat(batch).forEach(r => { setTimeout(() => deliverSMS(T.name, r), at); at += 1100 + Math.min(2600, r.length * 45) + Math.random() * 700; });
+      [].concat(batch).forEach(r => { setTimeout(() => deliverSMS(T.name, r), at); at += smsGap(r); });
     };
     return el;
   }
+  const smsGap = t => 1100 + Math.min(2600, t.length * 45) + Math.random() * 700;   // 연달아 오는 문자 사이 간격 (글자 수에 비례)
   function dialog(title, body) {   // 안드로이드 2.x 스타일 알림창
     const d = h(`<div class="dlg"><div class="dlg-box"><div class="dlg-t"><i>!</i>${esc(title)}</div><div class="dlg-b">${esc(body)}</div><div class="dlg-k"><button>확인</button></div></div></div>`);
     d.querySelector("button").onclick = () => d.remove(); $("#screen").appendChild(d);
@@ -589,7 +592,7 @@
       for (let i = 0; i < n; i++) {
         let k; do { k = rnd(0, P.harass.length - 1); } while (k === lastH && P.harass.length > 1); lastH = k;
         const who = num, txt = P.harass[k];
-        setTimeout(() => deliverSMS(who, txt), at); at += rnd(1500, 4500);
+        setTimeout(() => deliverSMS(who, txt), at); at += smsGap(txt);
       }
       next();
     }
