@@ -337,7 +337,7 @@
     if (audioCtx) { loadSound(url); sounds[url].then(buf => { if (!buf || stopped) return; src = audioCtx.createBufferSource(); src.buffer = buf; src.connect(audioCtx.destination); src.start(); }); }
     return () => { stopped = true; try { src && src.stop(); } catch (e) {} };
   }
-  function pickup() {   // 전화 받을 때 '달—칵' (두 번에 나눠 느리게)
+  function pickup(hard) {   // 전화 받을 때 '달—칵' (두 번에 나눠 느리게). hard: 급하게 낚아채듯 크게 '덜컥'
     const ctx = audioCtx; if (!ctx) return;
     const tick = (t, vol, freq, tau, dur, thump) => {
       const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate), ch = buf.getChannelData(0);
@@ -349,6 +349,9 @@
       og.gain.setValueAtTime(vol * .4, t); og.gain.exponentialRampToValueAtTime(.001, t + .22); o.connect(og); og.connect(ctx.destination); o.start(t); o.stop(t + .25);
     };
     const t = ctx.currentTime;
+    if (hard) {   // 덜컥 — 수화기를 급히 들며 부딪히는 소리 (크게, 붙어서)
+      tick(t, .9, 900, .03, .2, 90); tick(t + .06, 1, 1700, .022, .2, 130); tick(t + .2, .45, 2400, .012, .12, 160); return;
+    }
     tick(t, .25, 1500, .012, .12, 110);          // 달—
     tick(t + .17, .5, 2000, .016, .16, 150);     // 칵
   }
@@ -435,7 +438,7 @@
       timers.push(setTimeout(() => {
         stopRing();
         if (!sc.dead) {   // dead: 없는 번호 안내만 나오고 통화는 연결되지 않음
-          pickup(); stops.push(lineHum());
+          pickup(sc.hardPickup); stops.push(lineHum()); if (sc.pickupSound) stops.push(playSound(sc.pickupSound));
           t1 = Date.now(); const draw = () => { const s = Math.floor((Date.now() - t1) / 1000); st.textContent = `통화 중  ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
           draw(); tmr = setInterval(draw, 1000);
         }
@@ -465,7 +468,7 @@
           };
           return;
         }
-        let at = 900;
+        let at = sc.firstAt || 900;
         (sc.lines || []).forEach(l => { const txt = typeof l === "string" ? l : l.text, ms = (l && l.ms) || 2600; timers.push(setTimeout(() => { if (l && l.beep) beep(); if (l && l.sob) sob(ms); if (l && l.sound) stops.push(playSound(l.sound)); say(txt); line.classList.toggle("me", !!(l && l.me)); }, at)); at += ms; });
         timers.push(setTimeout(() => { line.classList.remove("show"); }, at)); timers.push(setTimeout(end, at + 900));
       }, sc.ringMs || 2600));
@@ -793,7 +796,7 @@
     if (t0 === null) t0 = Date.now();
     harassLoop(); threatLoop();
     try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); else if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) {}
-    Object.values(P.callScripts || {}).forEach(s => (s.lines || []).forEach(l => l && l.sound && loadSound(l.sound)));
+    Object.values(P.callScripts || {}).forEach(s => { (s.lines || []).forEach(l => l && l.sound && loadSound(l.sound)); s.pickupSound && loadSound(s.pickupSound); });
     fit();
     if (!stack.length) { push(lockScreen()); }
     sbIcons(); tick();
