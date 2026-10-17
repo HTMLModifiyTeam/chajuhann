@@ -246,3 +246,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 /* 목록이 화면보다 길 때 스크롤되도록 (flex 안의 스크롤 영역 높이 고정) */
 .scroll,.dial,.hm-pages{min-height:0}
 .scroll{overscroll-behavior:contain;touch-action:pan-y}
+.cs-line{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}
+.cs-line .ln{opacity:0;transform:translateY(12px);transition:opacity .4s,transform .4s}
+.cs-line .ln.in{opacity:1;transform:none}
+.cs-line .ln:not(:last-child){opacity:.6}

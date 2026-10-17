@@ -353,7 +353,15 @@
       <button class="cs-end" data-end>${IC.handset}종료</button></section>`);
     const timers = [], st = el.querySelector("[data-state]"), line = el.querySelector("[data-line]");
     let t1 = null, tmr = null, ended = false; const stopRing = ringback(), stops = [];
-    const say = (txt, ms) => { line.textContent = txt; line.classList.add("show"); };
+    const say = txt => {
+      if (sc && sc.stack) {   // stack: 앞 대사는 위로 밀려 올라가고 새 대사가 아래에 붙음
+        const olds = [...line.children], before = olds.map(n => n.getBoundingClientRect().top);
+        const n = document.createElement("div"); n.className = "ln"; n.textContent = txt; line.appendChild(n);
+        olds.forEach((o, i) => { const dy = before[i] - o.getBoundingClientRect().top; if (dy) o.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], { duration: 380, easing: "ease-out" }); });
+        requestAnimationFrame(() => n.classList.add("in"));
+      } else line.textContent = txt;
+      line.classList.add("show");
+    };
     const end = () => {
       if (ended) return; ended = true; timers.forEach(clearTimeout); clearInterval(tmr); stopRing(); stops.forEach(f => f());
       const sec = t1 ? Math.floor((Date.now() - t1) / 1000) : 0;
