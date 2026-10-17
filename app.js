@@ -420,7 +420,7 @@
   /* ================= 메시지 ================= */
   const threadFor = name => P.messages.find(t => t.name === name) || { name, msgs: [], _new: true };
   function threadRows() {
-    return P.messages.map((t, i) => { const last = [...t.msgs].reverse().find(m => m.text) || {}; const d = [...t.msgs].reverse().find(m => m.date);
+    return P.messages.map((t, i) => { const lm = [...t.msgs].reverse().find(m => m.text || m.file) || {}, last = lm.file ? { text: "[파일] " + lm.file, time: lm.time } : lm; const d = [...t.msgs].reverse().find(m => m.date);
       return `<button class="row${t.unread ? " unread" : ""}" data-thread="${i}" style="width:100%;text-align:left"><span class="ph">${AV}</span><span class="tx"><b>${esc(nameOf(t.name))}</b><small>${esc(last.text || "")}</small></span><span class="rt">${esc((() => { const md = d && d.date.match(/(\d+)월 (\d+)일/); return md && !(+md[1] === TODAY.getMonth() + 1 && +md[2] === TODAY.getDate()) ? `${md[1]}월 ${md[2]}일` : (last.time || ""); })())}${t.unread ? `<br><span class="cnt">${t.unread}</span>` : ""}</span></button>`; }).join("") || `<div class="empty">메시지가 없습니다.</div>`;
   }
   function messagesApp() {
@@ -431,13 +431,14 @@
   }
   function convScreen(T) {
     T.unread = 0; sbIcons();
-    const bubble = m => m.date ? `<div class="date"><span>${esc(m.date)}</span></div>` : `<div class="bub${m.me ? " me" : ""}"><div class="b">${esc(m.text)}</div><small>${esc(m.time || "")}</small></div>`;
+    const bubble = m => m.date ? `<div class="date"><span>${esc(m.date)}</span></div>` : `<div class="bub${m.me ? " me" : ""}">${m.file ? `<button class="b fileb" data-file="${esc(m.file)}"><i>PDF</i><span><b>${esc(m.file)}</b><small>${esc(m.size || "")}</small></span></button>` : `<div class="b">${esc(m.text)}</div>`}<small>${esc(m.time || "")}</small></div>`;
     const el = h(`<section class="scr"><div class="tbar">${esc(nameOf(T.name))}<small>${esc(numberOf(T.name) === T.name ? "" : numberOf(T.name))}</small></div>
       <div class="scroll conv" data-conv>${T.msgs.map(bubble).join("")}</div>
       <form class="compose"><input placeholder="메시지 입력" enterkeyhint="send" autocomplete="off"><button>전송</button></form></section>`);
     const conv = el.querySelector("[data-conv]"), inp = el.querySelector("input");
     requestAnimationFrame(() => conv.scrollTop = conv.scrollHeight);
     const add = m => { T.msgs.push(m); conv.insertAdjacentHTML("beforeend", bubble(m)); conv.scrollTop = conv.scrollHeight; };
+    conv.addEventListener("click", e => { const f = e.target.closest("[data-file]"); if (f) push(fileViewer(f.dataset.file)); });
     el._thread = T; el._show = m => { conv.insertAdjacentHTML("beforeend", bubble(m)); conv.scrollTop = conv.scrollHeight; };
     el.querySelector("form").onsubmit = e => {
       e.preventDefault(); const text = inp.value.trim(); if (!text) return; inp.value = "";
@@ -555,6 +556,14 @@
     if (threatOn) return; threatOn = true;
     const next = () => setTimeout(() => { if (!inCall && layer.classList.contains("open")) incomingThreat(); next(); }, rnd(30, 120) * 1000);   // 30초~2분 간격
     next();
+  }
+
+  function fileViewer(name) {
+    const F = (P.files || {})[name] || { blocks: [{ p: "파일을 열 수 없습니다." }] };
+    const B = b => b.stamp ? `<div class="dv-stamp">${esc(b.stamp)}</div>` : b.small ? `<p class="dv-small">${esc(b.small)}</p>` : b.h ? `<h1>${esc(b.h).replace(/\n/g, "<br>")}</h1>` : b.h2 ? `<h2>${esc(b.h2)}</h2>`
+      : b.quote ? `<blockquote>${esc(b.quote)}</blockquote>` : b.table ? `<table>${b.table.map((r, i) => `<tr>${r.map(c => i ? `<td>${esc(c)}</td>` : `<th>${esc(c)}</th>`).join("")}</tr>`).join("")}</table>` : `<p>${esc(b.p || "")}</p>`;
+    const el = h(`<section class="scr"><div class="tbar" style="font-size:14px">${esc(name)}</div><div class="scroll dv"><div class="dv-page">${F.blocks.map(B).join("")}</div></div></section>`);
+    return el;
   }
 
   /* ================= 메모 ================= */

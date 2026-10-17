@@ -264,3 +264,20 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .ic-no{background:linear-gradient(#ff6b5e,#c4170a);box-shadow:inset 0 0 0 1px #8a0f05}
 .ic-no svg{transform:rotate(135deg)}
 .incall .cs-state{color:#ffb35c}
+/* 첨부 파일 */
+.fileb{display:flex;align-items:center;gap:9px;text-align:left;background:linear-gradient(#ffffff,#dfe3e8)!important}
+.fileb i{flex:none;width:34px;height:40px;border-radius:3px;background:#d7261b;color:#fff;font-style:normal;font-size:10px;font-weight:700;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px}
+.fileb b{display:block;font-size:13px;font-weight:600;word-break:break-all}
+.fileb small{color:#777;font-size:11px}
+.dv{background:#5a5d62;padding:12px}
+.dv-page{background:#fdfdfb;color:#1a1a1a;padding:22px 18px 28px;box-shadow:0 2px 10px rgba(0,0,0,.5);font-family:"Noto Serif KR",serif;font-size:12.5px;line-height:1.7;position:relative}
+.dv-page h1{font-size:16px;text-align:center;margin:14px 0 16px;line-height:1.5}
+.dv-page h2{font-size:13px;margin:16px 0 6px;border-bottom:1px solid #999;padding-bottom:2px}
+.dv-page p{margin:0 0 6px}
+.dv-small{font-size:10.5px;color:#555}
+.dv-stamp{position:absolute;top:14px;right:14px;border:2px solid #c4170a;color:#c4170a;font-weight:700;font-size:13px;padding:2px 8px;transform:rotate(8deg);letter-spacing:.1em}
+.dv-page table{width:100%;border-collapse:collapse;margin:6px 0 8px;font-size:11.5px}
+.dv-page th,.dv-page td{border:1px solid #888;padding:4px 5px;text-align:center}
+.dv-page th{background:#e8e8e4}
+.dv-page blockquote{margin:4px 0;padding:4px 8px;border-left:3px solid #999;background:#f1f1ec;font-size:12px}
+.dv-page{padding-top:48px}
