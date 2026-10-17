@@ -290,6 +290,18 @@
     const g = ctx.createGain(), o = ctx.createOscillator(); o.frequency.value = 1000; g.gain.value = .06;
     o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + .6);
   }
+  function sob(ms) {   // 흐느끼는 소리: 낮게 거른 잡음이 불규칙하게 커졌다 작아짐
+    const ctx = audioCtx; if (!ctx) return;
+    const len = Math.ceil(ctx.sampleRate * ms / 1000), buf = ctx.createBuffer(1, len, ctx.sampleRate), ch = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 900; f.Q.value = 1.2;
+    const g = ctx.createGain(); g.gain.value = 0; src.connect(f); f.connect(g); g.connect(ctx.destination);
+    let t = ctx.currentTime + .2; const endT = ctx.currentTime + ms / 1000;
+    while (t < endT - .6) { const up = .25 + Math.random() * .5, hold = .2 + Math.random() * .6;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05 + Math.random() * .05, t + up); g.gain.linearRampToValueAtTime(0, t + up + hold); t += up + hold + .3 + Math.random() * 1.2; }
+    src.start(); src.stop(endT);
+  }
   function placeCall(target) {
     const name = nameOf(target), number = numberOf(target);
     const sc = (P.callScripts || {})[name] || (P.callScripts || {})[number];
@@ -318,7 +330,7 @@
           draw(); tmr = setInterval(draw, 1000);
         }
         let at = 900;
-        (sc.lines || []).forEach(l => { const txt = typeof l === "string" ? l : l.text, ms = (l && l.ms) || 2600; timers.push(setTimeout(() => { if (l && l.beep) beep(); say(txt); }, at)); at += ms; });
+        (sc.lines || []).forEach(l => { const txt = typeof l === "string" ? l : l.text, ms = (l && l.ms) || 2600; timers.push(setTimeout(() => { if (l && l.beep) beep(); if (l && l.sob) sob(ms); say(txt); }, at)); at += ms; });
         timers.push(setTimeout(() => { line.classList.remove("show"); }, at)); timers.push(setTimeout(end, at + 900));
       }, sc.ringMs || 2600));
     } else {
