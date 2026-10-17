@@ -439,19 +439,30 @@
           t1 = Date.now(); const draw = () => { const s = Math.floor((Date.now() - t1) / 1000); st.textContent = `통화 중  ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
           draw(); tmr = setInterval(draw, 1000);
         }
-        if (sc.voicemail) {   // 소리샘: 1번을 누르면 녹음된 메시지 재생 (번호별 메시지면 그 번호로 걸기만 해도 안내)
-          const VM = sc.voicemail === true ? (P.voicemail || {}) : sc.voicemail; let stage = 0, stopMsg = null;
+        if (sc.voicemail) {   // 소리샘. 전체 사서함(1번 길게)은 메시지를 번호로 골라 듣고, 번호별 메시지는 걸기만 해도 안내
+          const multi = sc.voicemail === true;
+          const list = multi ? (P.voicemailBox || []).map(n => (P.callScripts[n] || {}).voicemail).filter(Boolean) : [sc.voicemail];
+          const ORD = ["첫", "두", "세", "네", "다섯"];
+          let stage = 0, stopMsg = null;
           const guide = (txt, ms, then) => { say(txt); timers.push(setTimeout(() => then && then(), ms)); };
-          const playMsg = () => {
+          const menu = () => { stage = 2; say(`새 메시지가 ${list.length}건 있습니다. ` + list.map((_, i) => `${ORD[i]} 번째 메시지는 ${i + 1}번`).join(", ") + "을 눌러 주세요."); };
+          const playMsg = (VM, intro) => {
             stage = 1; if (stopMsg) stopMsg();
-            guide(`새 메시지가 1건 있습니다.`, 2200, () => guide(VM.label || "", 3000, () => {
+            const go = () => guide(VM.label || "", 3000, () => {
               say(""); stopMsg = VM.sound ? playSound(VM.sound) : () => {}; stops.push(stopMsg);
               (VM.lines || []).forEach(l => timers.push(setTimeout(() => { if (stage === 1) say(l.text); }, l.at)));
-              timers.push(setTimeout(() => { stage = 2; say("메시지가 끝났습니다. 다시 들으시려면 1번, 종료하시려면 통화 종료를 눌러 주세요."); }, (VM.ms || 19000) + 400));
-            }));
+              timers.push(setTimeout(() => { stage = 3; say(multi ? "메시지가 끝났습니다. 다른 메시지를 들으시려면 번호를, 종료하시려면 통화 종료를 눌러 주세요." : "메시지가 끝났습니다. 다시 들으시려면 1번, 종료하시려면 통화 종료를 눌러 주세요."); }, (VM.ms || 19000) + 400));
+            });
+            intro ? guide(intro, 2200, go) : go();
           };
-          timers.push(setTimeout(() => say(sc.voicemail === true ? "음성 사서함 열람을 원하시면 1번을 눌러 주세요." : "이 번호로 남겨진 음성 메시지가 1건 있습니다. 열람을 원하시면 1번을 눌러 주세요."), 900));
-          onKey = k => { if (stage === 1) return; if (k === "1") playMsg(); else say("잘못 누르셨습니다. 다시 눌러 주세요."); };
+          timers.push(setTimeout(() => say(multi ? "음성 사서함 열람을 원하시면 1번을 눌러 주세요." : "이 번호로 남겨진 음성 메시지가 1건 있습니다. 열람을 원하시면 1번을 눌러 주세요."), 900));
+          onKey = k => {
+            if (stage === 1) return;
+            const n = +k;
+            if (!multi) { if (k === "1") playMsg(list[0], "새 메시지가 1건 있습니다."); else say("잘못 누르셨습니다. 다시 눌러 주세요."); return; }
+            if (stage === 0) { if (k === "1") menu(); else say("잘못 누르셨습니다. 다시 눌러 주세요."); return; }
+            if (n >= 1 && n <= list.length) playMsg(list[n - 1], `${ORD[n - 1]} 번째 메시지입니다.`); else say("잘못 누르셨습니다. 다시 눌러 주세요.");
+          };
           return;
         }
         let at = 900;
