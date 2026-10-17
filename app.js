@@ -341,8 +341,10 @@
   function placeCall(target) {
     const name = nameOf(target), number = numberOf(target);
     let sc = (P.callScripts || {})[name] || (P.callScripts || {})[number];
-    if (sc && sc.miss && Math.random() < sc.miss)   // 가끔 받지 않음 → 한참 울리다 음성사서함 안내
-      sc = { ringMs: 20000, dead: true, lines: ["지금 거신 전화는 받을 수 없습니다.", "삐 소리 후 음성사서함으로 연결되며, 통화료가 부과됩니다.", { text: "삐—", beep: true, ms: 1400 }] };
+    if (sc) {   // 두 번째 전화부터는 again 대본 (reject: 짧게 울리다 끊김)
+      sc._n = (sc._n || 0) + 1;
+      if (sc._n >= 2 && sc.again) sc = sc.again.reject ? { ringMs: sc.again.ringMs || 1800, dead: true, lines: [] } : sc.again;
+    }
     const el = h(`<section class="scr callscr">
       <div class="cs-state" data-state>발신 중…</div>
       <div class="cs-ph">${AV}</div>
