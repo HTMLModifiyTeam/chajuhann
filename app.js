@@ -239,7 +239,7 @@
   /* ================= 전화 ================= */
   const LET = { 2: "ABC", 3: "DEF", 4: "GHI", 5: "JKL", 6: "MNO", 7: "PQRS", 8: "TUV", 9: "WXYZ", 0: "+" };
   function callRows() {
-    return P.calls.map((c, i) => `<button class="row" data-callrow="${i}" style="width:100%;text-align:left">${IC[c.dir] || IC.in}<span class="tx"><b style="${c.dir === "missed" ? "color:#ff6b5e" : ""}">${esc(nameOf(c.name))}${c.count > 1 ? ` (${c.count})` : ""}</b><small>${esc(numberOf(c.name))}${c.length ? " · " + esc(c.length) : ""}</small></span><span class="rt">${esc(c.when)}</span></button>`).join("") || `<div class="empty">통화 기록이 없습니다.</div>`;
+    return P.calls.map((c, i) => `<button class="row" data-callrow="${i}" style="width:100%;text-align:left">${IC[c.dir] || IC.in}<span class="tx"><b style="${c.dir === "missed" ? "color:#ff6b5e" : ""}">${esc(nameOf(c.name))}${c.count > 1 ? ` (${c.count})` : ""}</b><small>${esc(contactBy(c.name) ? numberOf(c.name) : "저장되지 않은 번호")}${c.length ? " · " + esc(c.length) : ""}</small></span><span class="rt">${esc(c.when)}</span></button>`).join("") || `<div class="empty">통화 기록이 없습니다.</div>`;
   }
   function phoneApp(tab) {
     const el = h(`<section class="scr">
