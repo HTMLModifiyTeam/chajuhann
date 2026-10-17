@@ -243,3 +243,6 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .viewer .pic{width:100%;flex:1;background-size:contain;background-repeat:no-repeat;background-position:center;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.7);font-size:14px}
 .urlbar{flex:none;display:flex;gap:6px;align-items:center;padding:6px;background:linear-gradient(#e9eef3,#c7d0da)}
 .urlbar span{flex:1;height:32px;border-radius:4px;background:#fff;border:1px solid #8a96a3;color:#333;font-size:13px;display:flex;align-items:center;padding:0 8px}
+/* 목록이 화면보다 길 때 스크롤되도록 (flex 안의 스크롤 영역 높이 고정) */
+.scroll,.dial,.hm-pages{min-height:0}
+.scroll{overscroll-behavior:contain;touch-action:pan-y}
