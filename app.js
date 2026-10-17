@@ -338,15 +338,20 @@
     if (audioCtx) { loadSound(url); sounds[url].then(buf => { if (!buf || stopped) return; src = audioCtx.createBufferSource(); src.buffer = buf; src.connect(audioCtx.destination); src.start(); }); }
     return () => { stopped = true; try { src && src.stop(); } catch (e) {} };
   }
-  function pickup() {   // 전화 받을 때 '달칵'
-    const ctx = audioCtx; if (!ctx) return; const t = ctx.currentTime;
-    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * .06), ctx.sampleRate), ch = buf.getChannelData(0);
-    for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * .006));
-    const s = ctx.createBufferSource(); s.buffer = buf;
-    const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 2200; f.Q.value = .9;
-    const g = ctx.createGain(); g.gain.value = .5; s.connect(f); f.connect(g); g.connect(ctx.destination); s.start(t);
-    const o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(60, t + .08);
-    og.gain.setValueAtTime(.18, t); og.gain.exponentialRampToValueAtTime(.001, t + .1); o.connect(og); og.connect(ctx.destination); o.start(t); o.stop(t + .12);
+  function pickup() {   // 전화 받을 때 '달—칵' (두 번에 나눠 느리게)
+    const ctx = audioCtx; if (!ctx) return;
+    const tick = (t, vol, freq, tau, dur, thump) => {
+      const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate), ch = buf.getChannelData(0);
+      for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * tau));
+      const s = ctx.createBufferSource(); s.buffer = buf;
+      const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = freq; f.Q.value = .8;
+      const g = ctx.createGain(); g.gain.value = vol; s.connect(f); f.connect(g); g.connect(ctx.destination); s.start(t);
+      const o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.setValueAtTime(thump, t); o.frequency.exponentialRampToValueAtTime(thump * .45, t + .2);
+      og.gain.setValueAtTime(vol * .4, t); og.gain.exponentialRampToValueAtTime(.001, t + .22); o.connect(og); og.connect(ctx.destination); o.start(t); o.stop(t + .25);
+    };
+    const t = ctx.currentTime;
+    tick(t, .25, 1500, .012, .12, 110);          // 달—
+    tick(t + .17, .5, 2000, .016, .16, 150);     // 칵
   }
   function lineHum() {   // 통화 중 수화기 너머 은은한 '웅—' (아주 작게)
     const ctx = audioCtx; if (!ctx) return () => {};
@@ -354,8 +359,8 @@
     let last = 0; for (let i = 0; i < len; i++) { last = (last + .02 * (Math.random() * 2 - 1)) / 1.02; ch[i] = last * 3.5; }   // 낮게 깔리는 잡음
     const s = ctx.createBufferSource(); s.buffer = buf; s.loop = true;
     const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 420;
-    const hum = ctx.createOscillator(); hum.frequency.value = 110; const hg = ctx.createGain(); hg.gain.value = .006;
-    const g = ctx.createGain(), t = ctx.currentTime; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05, t + .6);
+    const hum = ctx.createOscillator(); hum.frequency.value = 110; const hg = ctx.createGain(); hg.gain.value = .012;
+    const g = ctx.createGain(), t = ctx.currentTime; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.11, t + .6);
     s.connect(lp); lp.connect(g); hum.connect(hg); hg.connect(g); g.connect(ctx.destination); s.start(); hum.start();
     let done = false;
     return () => { if (done) return; done = true; const t2 = ctx.currentTime; g.gain.cancelScheduledValues(t2); g.gain.setValueAtTime(g.gain.value, t2); g.gain.linearRampToValueAtTime(0, t2 + .25); try { s.stop(t2 + .3); hum.stop(t2 + .3); } catch (e) {} };
