@@ -282,3 +282,41 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .dv-page blockquote{margin:4px 0;padding:4px 8px;border-left:3px solid #999;background:#f1f1ec;font-size:12px}
 .dv-page{padding-top:48px}
 .cs-line.me{color:#9fd3ff;font-style:italic}
+/* 포털 (옛날 모바일 웹) */
+.wb{background:#eef0f2;color:#222;font-size:13px;letter-spacing:-.03em}
+.wb-top{background:linear-gradient(#3fa9f5,#1b78d0);padding:8px 8px 9px;display:flex;align-items:center;gap:8px}
+.wb-top.sm{padding:7px 10px}
+.wb-logo{color:#fff;font-size:20px;font-weight:800;font-style:italic;text-shadow:0 1px 0 rgba(0,0,0,.3);flex:none}
+.wb-search{flex:1;display:flex;height:30px;border:2px solid #0d5aa7;background:#fff;border-radius:2px}
+.wb-search span{flex:1;color:#aaa;font-size:12px;display:flex;align-items:center;padding-left:6px}
+.wb-search i{font-style:normal;background:linear-gradient(#ffcf3f,#f0a500);color:#5a3a00;font-weight:700;font-size:12px;padding:0 9px;display:flex;align-items:center}
+.wb-tabs{display:flex;background:#fff;border-bottom:1px solid #c9cdd2}
+.wb-tabs>*{flex:1;text-align:center;padding:8px 0;font-size:13px;color:#555}
+.wb-tabs b{color:#1b78d0;border-bottom:3px solid #1b78d0}
+.wb-box{background:#fff;margin:7px 0;border-top:1px solid #d5d8dc;border-bottom:1px solid #d5d8dc;padding:8px 10px}
+.wb-box h3{margin:0 0 6px;font-size:13.5px;color:#1b4f8a}
+.wb-box h3 em{font-style:normal;color:#e33}
+.wb-rank{margin:0;padding:0;list-style:none;columns:2;column-gap:12px}
+.wb-rank li{display:flex;gap:5px;align-items:center;padding:3px 0;font-size:12.5px;break-inside:avoid}
+.wb-rank em{font-style:normal;width:16px;height:16px;flex:none;background:#1b78d0;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.wb-rank li:nth-child(n+4) em{background:#8a9099}
+.wb-rank small{margin-left:auto;color:#e33;font-size:9.5px}
+.wb-news{display:flex;gap:8px;width:100%;text-align:left;padding:7px 0;border-top:1px dotted #ccc;color:#222}
+.wb-news:first-of-type{border-top:0}
+.wb-news b{display:block;font-size:13.5px;font-weight:600;line-height:1.35;color:#1a1a1a}
+.wb-news small{color:#888;font-size:11px}
+.wb-news:active b{text-decoration:underline;color:#1b78d0}
+.wb-th{flex:none;width:62px;height:46px;border:1px solid #bbb}
+.wb-foot{text-align:center;color:#888;font-size:11px;padding:10px 0 18px;line-height:1.6}
+.wb-art{background:#fff;padding:12px 12px 6px;border-bottom:1px solid #d5d8dc}
+.wb-art h1{font-size:17px;line-height:1.4;margin:0 0 6px;color:#111}
+.wb-meta{color:#888;font-size:11px;margin:0 0 10px;padding-bottom:7px;border-bottom:1px solid #e3e3e3}
+.wb-art p{font-size:14px;line-height:1.75;margin:0 0 10px}
+.wb-img{height:150px;display:flex;align-items:flex-end;padding:5px;color:rgba(255,255,255,.7);font-size:11px;margin-bottom:10px}
+.wb-rep{color:#999;font-size:11px!important}
+.wb-cm{border-top:1px solid #eee;padding:7px 0}
+.wb-cm b{font-size:12px;color:#333}
+.wb-cm small{color:#aaa;font-size:10.5px;margin-left:6px}
+.wb-cm p{margin:3px 0;font-size:13px;line-height:1.5}
+.wb-cm span{color:#999;font-size:10.5px}
+.wb-more{text-align:center;color:#1b78d0;padding:8px 0 2px;border-top:1px solid #eee}

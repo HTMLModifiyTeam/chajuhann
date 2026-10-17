@@ -648,11 +648,31 @@
 
   /* ================= 인터넷 ================= */
   function internetApp() {
-    const el = h(`<section class="scr"><div class="urlbar"><span data-url>즐겨찾기</span></div><div class="sec">즐겨찾기</div>
-      <div class="scroll list" data-body>${(P.bookmarks || []).map((b, i) => `<button class="row" data-bm="${i}" style="width:100%;text-align:left"><span class="tx"><b>${esc(b.title)}</b><small>${esc(b.url)}</small></span></button>`).join("")}</div></section>`);
-    el.addEventListener("click", e => { const b = e.target.closest("[data-bm]"); if (!b) return; const B = P.bookmarks[+b.dataset.bm];
-      el.querySelector("[data-url]").textContent = "http://" + B.url;
-      el.querySelector("[data-body]").innerHTML = `<div class="empty" style="color:#bbb;line-height:1.7">웹 페이지를 사용할 수 없습니다<br><small style="color:#777">네트워크 연결 상태를 확인하세요.</small></div>`; });
+    const N = P.portal || { news: [], trends: [], comments: [] };
+    const page = (url, inner) => h(`<section class="scr web"><div class="urlbar"><span>http://${esc(url)}</span></div><div class="scroll wb">${inner}</div></section>`);
+    const thumb = i => `<span class="wb-th" style="background:${tint(i + 5)}"></span>`;
+    const el = page(N.url, `
+      <div class="wb-top"><b class="wb-logo">${esc(N.name)}</b><div class="wb-search"><span>검색어를 입력하세요</span><i>검색</i></div></div>
+      <nav class="wb-tabs"><b>뉴스</b><span>연예</span><span>스포츠</span><span>경제</span><span>블로그</span></nav>
+      <div class="wb-box"><h3>실시간 급상승 검색어</h3><ol class="wb-rank">${N.trends.map((t, i) => `<li><em>${i + 1}</em>${esc(t)}<small>${i < 3 ? "▲" : i % 3 ? "NEW" : "▲"}</small></li>`).join("")}</ol></div>
+      <div class="wb-box"><h3>많이 본 뉴스</h3>${N.news.map((n, i) => `<button class="wb-news" data-art="${i}">${thumb(i)}<span><b>${esc(n.title)}</b><small>${esc(n.press)} · ${esc(n.time)} · 댓글 ${n.cm.toLocaleString()}</small></span></button>`).join("")}</div>
+      <div class="wb-foot">${esc(N.name)} · PC버전 · 로그인<br>© NURI Corp.</div>`);
+    el.addEventListener("click", e => { const b = e.target.closest("[data-art]"); if (b) push(article(+b.dataset.art)); });
+    function article(i) {
+      const n = N.news[i], pool = N.comments, cm = [];
+      for (let k = 0; k < 9; k++) cm.push(pool[(i * 7 + k * 5) % pool.length]);
+      const nick = k => "abcdefghijklmnopqrstuvwxyz".substr((i * 3 + k * 7) % 22, 4) + "****";
+      const a = page(`${N.url}/news/${2018030700 + i}`, `
+        <div class="wb-top sm"><b class="wb-logo">${esc(N.name)} 뉴스</b></div>
+        <article class="wb-art"><h1>${esc(n.title)}</h1><p class="wb-meta">${esc(n.press)} | 입력 2018.03.07 ${esc(n.time)}</p>
+          <div class="wb-img" style="background:${tint(i + 5)}">사진</div>
+          ${n.body.map(p => `<p>${esc(p)}</p>`).join("")}
+          <p class="wb-rep">${esc(n.press)} 기자 · 무단 전재 및 재배포 금지</p></article>
+        <div class="wb-box"><h3>댓글 <em>${n.cm.toLocaleString()}</em></h3>
+          ${cm.map((c, k) => `<div class="wb-cm"><b>${nick(k)}</b><small>${k + 1}분 전</small><p>${esc(c)}</p><span>공감 ${(((i + 3) * (k + 7) * 37) % 900 + 40)} · 비공감 ${(((i + 1) * (k + 2) * 7) % 30)}</span></div>`).join("")}
+          <div class="wb-more">댓글 더보기 ▼</div></div>`);
+      return a;
+    }
     return el;
   }
 
