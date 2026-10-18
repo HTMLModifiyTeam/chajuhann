@@ -427,7 +427,8 @@
       dialog("통화 연결 실패", "상대방의 요청으로 이 번호와의 통화가 제한되었습니다. 전화를 걸 수 없습니다."); return;
     }
     inCall = true;
-    let sc = isVM ? { ringMs: 1500, voicemail: true, lines: [] } : (P.callScripts || {})[name] || (P.callScripts || {})[number];
+    const dg = s => String(s).replace(/\D/g, "");
+    let sc = isVM ? { ringMs: 1500, voicemail: true, lines: [] } : (P.callScripts || {})[name] || (P.callScripts || {})[number] || Object.entries(P.callScripts || {}).find(([k]) => dg(k) && dg(k) === dg(number))?.[1];
     if (sc) {   // 두 번째 전화부터는 again 대본 (reject: 짧게 울리다 끊김)
       sc._n = (sc._n || 0) + 1;
       if (sc._n >= 2 && sc.again) sc = sc.again.reject ? { ringMs: sc.again.ringMs || 1800, dead: true, lines: [] } : sc.again;
