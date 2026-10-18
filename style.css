@@ -401,3 +401,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 /* 본문 없이 바로 휴대폰 */
 body.direct .close-phone{display:none}
 body.direct .backdrop{pointer-events:none}
+
+/* 배터리 방전: 안내 후 검은 화면 (다시 켜지지 않음) */
+.dead{position:absolute;inset:0;z-index:999;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;font-size:15px;line-height:1.7;transition:background 1s}
+.dead.black{background:#000}
+.dead.black p{opacity:0;transition:opacity .4s}

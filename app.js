@@ -118,7 +118,8 @@
 
   /* ================= 상태 표시줄 ================= */
   const bat = $("#bat");
-  bat.querySelector("i").style.height = Math.max(8, P.battery ?? 60) + "%"; bat.classList.toggle("low", (P.battery ?? 60) < 20);
+  function setBat() { bat.querySelector("i").style.height = Math.max(P.battery > 0 ? 8 : 0, P.battery ?? 60) + "%"; bat.classList.toggle("low", (P.battery ?? 60) < 20); }
+  setBat();
   function sbIcons() {
     const missed = badge("phone"), unread = badge("message");
     $("#sbLeft").innerHTML = (missed ? `<svg viewBox="0 0 20 20"><path d="M3 7l6 6 8-8" fill="none" stroke="#ff4b3e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>` : "") + (unread ? IC.sms : "");
@@ -543,6 +544,7 @@
       if (!batch) return;
       let at = 1400 + Math.random() * 1200;
       [].concat(batch).forEach(r => { setTimeout(() => deliverSMS(T.name, r), at); at += smsGap(r); });
+      if (C.call && !T._called && k === (C.replies || []).length - 1) { T._called = true; setTimeout(() => followCall(T.name, C.call, 0), at + (C.call.after || 6000)); }   // 답장이 한 바퀴 돌면 그 사람에게서 전화
     };
     return el;
   }
@@ -565,6 +567,7 @@
     clearTimeout(tickerT); tickerT = setTimeout(() => tk.classList.remove("show"), 3200);
   }
   function deliverSMS(name, text) {
+    if (dead) return;
     let T = P.messages.find(t => t.name === name);
     if (T) P.messages.splice(P.messages.indexOf(T), 1); else T = { name, msgs: [] };
     const dl = `${TODAY.getFullYear()}년 ${dateLabel(TODAY)}`, m = { text, time: nowLabel() }, top = stack[stack.length - 1];
@@ -646,10 +649,68 @@
     timers.push(setTimeout(() => { if (!t1) close("부재중 전화"); }, 30000));
     push(el);
   }
+  /* 문자 답장이 다 돌면 걸려 오는 전화 (예: 강민재) */
+  function followCall(name, CALL, tries) {
+    if (dead) return;
+    if (inCall) return setTimeout(() => followCall(name, CALL, tries), 4000);
+    inCall = true;
+    const number = numberOf(name);
+    const el = h(callShell(name, number, true));
+    wireCall(el);
+    const st = el.querySelector("[data-state]"), line = el.querySelector("[data-line]"), timers = [], stops = [];
+    let stopRing = ringtone(), t1 = null, tmr = null, done = false, answered = false;
+    const close = (dir, cut) => {
+      if (done) return; done = true; stopRing(); timers.forEach(clearTimeout); clearInterval(tmr); stops.forEach(f => f());
+      const sec = t1 ? Math.floor((Date.now() - t1) / 1000) : 0;
+      P.calls.unshift(t1 ? { name, dir: "in", when: nowLabel(), length: `${Math.floor(sec / 60)}분 ${sec % 60}초` } : { name, dir: "missed", when: nowLabel() });
+      sbIcons(); stack.forEach(s => s._refresh && s !== el && s._refresh());
+      if (cut) { line.classList.remove("show"); [0, .25, .5].forEach(d => setTimeout(beep, d * 1000)); }
+      st.textContent = dir || "통화 종료"; el.querySelector("[data-btns]").hidden = true;
+      setTimeout(() => { if (stack.includes(el)) { const i = stack.indexOf(el); if (i === stack.length - 1) pop(); else { stack.splice(i, 1); el.remove(); } } inCall = false;
+        if (!answered && tries < 2) setTimeout(() => followCall(name, CALL, tries + 1), 15000); }, cut ? 1600 : 900);
+    };
+    el._onClose = () => { if (!done) close(); };
+    el.querySelector("[data-no]").onclick = () => close("거절됨");
+    el.querySelector("[data-end]").onclick = () => close();
+    el.querySelector("[data-ok]").onclick = () => {
+      answered = true; stopRing(); el.querySelector("[data-btns]").hidden = true; el.querySelector("[data-grid]").hidden = false;
+      pickup(true); stops.push(lineHum()); if (CALL.sound) stops.push(playSound(CALL.sound));
+      t1 = Date.now(); const draw = () => { const s = Math.floor((Date.now() - t1) / 1000); st.textContent = `통화 중  ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
+      draw(); tmr = setInterval(draw, 1000);
+      let at = CALL.firstAt || 1200;
+      CALL.lines.forEach(l => { timers.push(setTimeout(() => { line.textContent = l.text; line.classList.toggle("me", !!l.me); line.classList.add("show"); }, at)); at += l.ms || Math.max(2200, l.text.length * 120); });
+      timers.push(setTimeout(() => close("통화 종료", true), at));   // 마지막 말에서 뚝 끊김
+    };
+    timers.push(setTimeout(() => { if (!t1) close("부재중 전화"); }, 30000));
+    push(el);
+  }
+
+  /* ================= 배터리: 4분에 1%씩, 0%가 되면 전원이 꺼지고 다시 켜지지 않음 ================= */
+  let dead = false;
+  function batteryLoop() {
+    const iv = setInterval(() => {
+      if (dead) return clearInterval(iv);
+      P.battery = Math.max(0, (P.battery ?? 3) - 1); setBat();
+      if (P.battery > 0) { beep(); toast(`배터리가 부족합니다 (${P.battery}%). 충전하세요.`); }
+      else { clearInterval(iv); shutdown(); }
+    }, 4 * 60 * 1000);
+  }
+  function shutdown() {
+    dead = true; inCall = true;
+    const off = h(`<div class="dead"><p>배터리가 부족합니다.<br>전원이 꺼집니다.</p></div>`);
+    $("#screen").appendChild(off);
+    beep(); setTimeout(beep, 300);
+    setTimeout(() => {
+      stack.forEach(s => { try { s._onClose && s._onClose(); } catch (e) {} });
+      off.classList.add("black");
+      try { const ctx = audioCtx, t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(880, t); o.frequency.exponentialRampToValueAtTime(110, t + .8); g.gain.setValueAtTime(.06, t); g.gain.linearRampToValueAtTime(0, t + .85); o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + .9); } catch (e) {}
+    }, 2600);
+  }
+
   let threatOn = false;
   function threatLoop() {
     if (threatOn) return; threatOn = true;
-    const next = () => setTimeout(() => { if (!inCall && layer.classList.contains("open")) incomingThreat(); next(); }, rnd(30, 120) * 1000);   // 30초~2분 간격
+    const next = () => setTimeout(() => { if (dead) return; if (!inCall && layer.classList.contains("open")) incomingThreat(); next(); }, rnd(30, 120) * 1000);   // 30초~2분 간격
     next();
   }
 
@@ -816,6 +877,7 @@
   /* ================= 하드웨어 버튼 ================= */
   document.querySelectorAll("[data-key]").forEach(b => b.addEventListener("click", () => {
     const k = b.dataset.key;
+    if (dead) return;
     if (k === "back" && (locked || stack.length <= 1)) { closePhone(); return; }   // 첫 화면에서 뒤로 = 본문으로
     if (locked) return;
     if (k === "back") pop();
@@ -832,7 +894,7 @@
   addEventListener("resize", fit);
   function openPhone() {
     if (layer.classList.contains("open")) return;
-    if (t0 === null) t0 = Date.now();
+    if (t0 === null) { t0 = Date.now(); batteryLoop(); }
     harassLoop(); threatLoop();
     try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); else if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) {}
     Object.values(P.callScripts || {}).forEach(s => { (s.lines || []).forEach(l => l && l.sound && loadSound(l.sound)); s.pickupSound && loadSound(s.pickupSound); });
