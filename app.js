@@ -423,7 +423,7 @@
   function placeCall(target) {
     const isVM = target === "1" || target === "음성사서함";
     const name = isVM ? "음성사서함" : nameOf(target), number = isVM ? "소리샘" : numberOf(target);
-    if (!isVM && P.messages.some(t => t.blocked && (t.name === name || t.name === number))) {   // 나를 차단한 사람에겐 전화도 안 걸림
+    if (!isVM && !((P.msgReplies || {})[name] || {}).allowCall && P.messages.some(t => t.blocked && (t.name === name || t.name === number))) {   // 나를 차단한 사람에겐 전화도 안 걸림
       dialog("통화 연결 실패", "상대방의 요청으로 이 번호와의 통화가 제한되었습니다. 전화를 걸 수 없습니다."); return;
     }
     inCall = true;
