@@ -475,8 +475,8 @@
             stage = 1; if (stopMsg) stopMsg();
             const go = () => guide(VM.label || "", 3000, () => {
               say(""); stopMsg = VM.sound ? playSound(VM.sound) : () => {}; stops.push(stopMsg);
-              (VM.lines || []).forEach(l => timers.push(setTimeout(() => { if (stage === 1) say(l.text); }, l.at)));
-              timers.push(setTimeout(() => { stage = 3; say(multi ? "메시지가 끝났습니다. 다른 메시지를 들으시려면 번호를, 종료하시려면 통화 종료를 눌러 주세요." : "메시지가 끝났습니다. 다시 들으시려면 1번, 종료하시려면 통화 종료를 눌러 주세요."); }, (VM.ms || 19000) + 400));
+              (VM.lines || []).forEach(l => timers.push(setTimeout(() => { if (stage === 1) { say(l.text); line.classList.toggle("me", !!l.me); } }, l.at)));
+              timers.push(setTimeout(() => { stage = 3; line.classList.remove("me"); say(multi ? "메시지가 끝났습니다. 다른 메시지를 들으시려면 번호를, 종료하시려면 통화 종료를 눌러 주세요." : "메시지가 끝났습니다. 다시 들으시려면 1번, 종료하시려면 통화 종료를 눌러 주세요."); }, (VM.ms || 19000) + 400));
             });
             intro ? guide(intro, 2200, go) : go();
           };
