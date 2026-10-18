@@ -458,7 +458,7 @@
       timers.push(setTimeout(() => {
         stopRing();
         if (!sc.dead) {   // dead: 없는 번호 안내만 나오고 통화는 연결되지 않음
-          pickup(sc.hardPickup); stops.push(lineHum()); if (sc.pickupSound) stops.push(playSound(sc.pickupSound));
+          pickup(sc.hardPickup); if (!sc.voicemail) stops.push(lineHum());   // 음성사서함은 안내 중엔 조용, 메시지 재생부터 웅— if (sc.pickupSound) stops.push(playSound(sc.pickupSound));
           t1 = Date.now(); const draw = () => { const s = Math.floor((Date.now() - t1) / 1000); st.textContent = `통화 중  ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
           draw(); tmr = setInterval(draw, 1000);
         }
@@ -474,9 +474,10 @@
           const playMsg = (VM, intro) => {
             stage = 1; if (stopMsg) stopMsg();
             const go = () => guide(VM.label || "", 3000, () => {
-              say(""); stopMsg = VM.sound ? playSound(VM.sound) : () => {}; stops.push(stopMsg);
+              say(""); const stopSnd = VM.sound ? playSound(VM.sound) : () => {}, stopHum = lineHum();
+              stopMsg = () => { stopSnd(); stopHum(); }; stops.push(stopMsg);
               (VM.lines || []).forEach(l => timers.push(setTimeout(() => { if (stage === 1) { say(l.text); line.classList.toggle("me", !!l.me); } }, l.at)));
-              timers.push(setTimeout(() => { stage = 3; line.classList.remove("me"); say(multi ? "메시지가 끝났습니다. 다른 메시지를 들으시려면 번호를, 종료하시려면 통화 종료를 눌러 주세요." : "메시지가 끝났습니다. 다시 들으시려면 1번, 종료하시려면 통화 종료를 눌러 주세요."); }, (VM.ms || 19000) + 400));
+              timers.push(setTimeout(() => { stage = 3; if (stopMsg) stopMsg(); line.classList.remove("me"); say(multi ? "메시지가 끝났습니다. 다른 메시지를 들으시려면 번호를, 종료하시려면 통화 종료를 눌러 주세요." : "메시지가 끝났습니다. 다시 들으시려면 1번, 종료하시려면 통화 종료를 눌러 주세요."); }, (VM.ms || 19000) + 400));
             });
             intro ? guide(intro, 2200, go) : go();
           };
