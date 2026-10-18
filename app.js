@@ -535,7 +535,7 @@
       if (T._new) { delete T._new; } const i = P.messages.indexOf(T); if (i >= 0) P.messages.splice(i, 1); P.messages.unshift(T);
       if (T.blocked) return;
       const C = (P.msgReplies || {})[T.name];   // 답장 설정. 없으면 (이미 세상을 떠난 사람 등) 아무 답도 오지 않음
-      if (!C) return;
+      if (!C) { if (harassFrom.has(T.name)) swearBack(T.name, text); return; }
       const k = T._ri = (T._ri ?? -1) + 1;
       if (C.block && k + 1 >= C.block) {   // 차단: 이번 메시지부터 전송 실패
         T.blocked = true; lockCompose();
@@ -590,6 +590,18 @@
     return n;
   }
   let harassOn = false, lastH = -1;
+  const harassFrom = new Set();   // 협박 문자를 보낸 번호들
+  /* 협박 번호에 욕(시발·씨발·좆·개새끼·지랄)을 보내면 그 욕을 받아서 되받아침 */
+  const SWEARS = ["씨발", "시발", "개새끼", "지랄", "좆"];
+  const batchim = w => { const c = w.charCodeAt(w.length - 1); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 > 0; };
+  function swearBack(num, text) {
+    let w = null, at = Infinity;
+    SWEARS.forEach(x => { const i = text.indexOf(x); if (i >= 0 && i < at) { at = i; w = x; } });
+    const L = P.swearReplies || []; if (!w || !L.length) return;
+    const b = batchim(w), fill = t => t.replace(/\{w\}/g, w).replace(/\{이라고\}/g, b ? "이라고" : "라고").replace(/\{이야\}/g, b ? "이야" : "야");
+    let t = 1200 + Math.random() * 1500;
+    [].concat(L[rnd(0, L.length - 1)]).forEach(r => { const msg = fill(r); setTimeout(() => deliverSMS(num, msg), t); t += smsGap(msg); });
+  }
   function harassLoop() {
     if (harassOn || !(P.harass || []).length) return; harassOn = true;
     const next = () => setTimeout(burst, rnd(7, 14) * 1000);   // 7초~14초 간격
@@ -597,7 +609,7 @@
       const n = rnd(1, 3), num = randomNumber(); let at = 0;   // 한 번에 한 명이 1~3개
       for (let i = 0; i < n; i++) {
         let k; do { k = rnd(0, P.harass.length - 1); } while (k === lastH && P.harass.length > 1); lastH = k;
-        const who = num, txt = P.harass[k];
+        const who = num, txt = P.harass[k]; harassFrom.add(num);
         setTimeout(() => deliverSMS(who, txt), at); at += smsGap(txt);
       }
       next();
