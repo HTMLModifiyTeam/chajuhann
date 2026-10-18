@@ -188,7 +188,7 @@
 
   /* ================= 홈 ================= */
   function homeScreen() {
-    const page = `<div class="wg wg-clock"><div><div class="t" data-now></div><div class="d">${dateLabel(TODAY)}</div></div><div class="w">서울<b>9°</b>맑음</div></div>${["internet", "calendar", "memo", "clock", "gallery", "music", "camera", "settings"].map(id => appBtn(id)).join("")}`;
+    const page = `<div class="wg wg-clock"><div><div class="t" data-now></div><div class="d">${dateLabel(TODAY)}</div></div><div class="w">서울<b>9°</b>맑음</div></div>${["internet", "calendar", "memo", "clock", "gallery", "music"].map(id => appBtn(id)).join("")}`;
     const el = h(`<section class="scr home">${wallHTML()}
       <div class="hm-dots"></div>
       <div class="hm-pages"><div class="hm-track"><div class="hm-page">${page}</div></div></div>
@@ -198,7 +198,7 @@
     return el;
   }
   function drawer() {
-    const ids = ["phone", "contacts", "message", "internet", "camera", "gallery", "calendar", "clock", "memo", "music", "calc", "email", "settings", "radio", "diary", "market", "files", "briefing"];
+    const ids = ["phone", "contacts", "message", "internet", "gallery", "calendar", "clock", "memo", "music"];
     const pages = []; for (let i = 0; i < ids.length; i += 16) pages.push(ids.slice(i, i + 16));
     const el = h(`<section class="scr drawer"><div class="dr-head"></div>
       <div class="hm-pages"><div class="hm-track">${pages.map(p => `<div class="hm-page">${p.map(id => appBtn(id)).join("")}</div>`).join("")}</div></div></section>`);
