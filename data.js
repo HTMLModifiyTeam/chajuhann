@@ -60,7 +60,7 @@ window.PHONE = {
     { name: "조아영", number: "011-834-2756" },
     { name: "양동진 부인-윤미경", number: "010-8352-1907" },
     { name: "KBS-남궁현 기자", number: "017-993-1512" },
-    { name: "모몽가", number: "???" },
+    { name: "모몽가", number: "CHI-MOMO-GA" },
     { name: "MBC-신재훈 기자", number: "017-789-6217" },
     { name: "YTN-변성우 기자", number: "011-237-4294" },
     { name: "연합뉴스-추경민 기자", number: "011-660-7121" },
