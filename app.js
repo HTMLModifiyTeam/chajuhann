@@ -160,21 +160,10 @@
     pat.addEventListener("pointermove", e => { if (!path || done) return; const r = pat.getBoundingClientRect(); cur = [e.clientX - r.left, e.clientY - r.top]; add(hit(e.clientX, e.clientY)); draw(); });
     const up = () => {
       if (!path || done) return; cur = null;
-      if (path.length == 1) {
         done = true;
         msg.textContent = "패턴이 틀렸습니다. 시스템이 손상되었습니다.";
         draw("ok");
         setTimeout(unlock, 350);
-      } else {
-        msg.textContent = path.length ? "점을 연결하세요. 다시 시도하세요." : "잠금 해제 패턴을 그리세요";
-        draw("bad");
-        setTimeout(() => {
-          if (!done) {
-            path = null;
-            draw();
-          }
-        }, 900);
-      }
     };
     pat.addEventListener("pointerup", up); pat.addEventListener("pointercancel", up);
     return el;
