@@ -1,44 +1,56 @@
 <!doctype html>
 <html lang="ko">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>차주한 휴대폰</title>
-<meta name="description" content="본문의 링크를 누르면 등장인물의 휴대폰을 열어볼 수 있는 페이지">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;600&display=swap">
-<link rel="stylesheet" href="style.css?v=202610190959">
-</head>
-<body>
-  <main id="story" class="story"></main>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+    <title>차주한 휴대폰</title>
+    <meta name="description" content="본문의 링크를 누르면 등장인물의 휴대폰을 열어볼 수 있는 페이지">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;600&display=swap">
+    <link rel="stylesheet" href="style.css">
+  </head>
 
-  <div id="phoneLayer" class="phone-layer" aria-hidden="true">
-    <div class="backdrop" data-close></div>
-    <div id="body" class="gs-body">
-      <div class="gs-top"><i class="gs-speaker"></i><i class="gs-cam"></i><i class="gs-sensor"></i></div>
-      <div id="screen" class="gs-screen">
-        <div class="sbar" id="sbar">
-          <span class="sb-left" id="sbLeft"></span>
-          <span class="sb-right">
-            <svg class="sig" viewBox="0 0 16 12"><rect x="0" y="8" width="3" height="4"/><rect x="4" y="6" width="3" height="6"/><rect x="8" y="3" width="3" height="9"/><rect x="12" y="0" width="3" height="12" opacity=".35"/></svg>
-            <b class="net">3G</b>
-            <span class="bat" id="bat"><i></i></span>
-            <span id="sbTime"></span>
-          </span>
+  <body>
+    <main id="story" class="story"></main>
+
+    <div id="phoneLayer" class="phone-layer" aria-hidden="true">
+      <div class="backdrop" data-close></div>
+      <div id="body" class="gs-body">
+        <div class="gs-top"><i class="gs-speaker"></i><i class="gs-cam"></i><i class="gs-sensor"></i></div>
+        <div id="screen" class="gs-screen">
+          <div class="sbar" id="sbar">
+            <span class="sb-left" id="sbLeft"></span>
+            <span class="sb-right">
+              <svg class="sig" viewBox="0 0 16 12">
+                <rect x="0" y="8" width="3" height="4" />
+                <rect x="4" y="6" width="3" height="6" />
+                <rect x="8" y="3" width="3" height="9" />
+                <rect x="12" y="0" width="3" height="12" opacity=".35" />
+              </svg>
+              <b class="net">3G</b>
+              <span class="bat" id="bat"><i></i></span>
+              <span id="sbTime"></span>
+            </span>
+          </div>
+          <div id="screens" class="screens"></div>
+          <div id="toast" class="toast" hidden></div>
         </div>
-        <div id="screens" class="screens"></div>
-        <div id="toast" class="toast" hidden></div>
+        <div class="gs-keys">
+          <button class="gk menu" data-key="menu" aria-label="메뉴"><svg viewBox="0 0 24 16">
+              <rect x="2" y="2" width="20" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <path d="M6 6h12M6 10h12" stroke="currentColor" stroke-width="1.4" />
+            </svg></button>
+          <button class="gk home" data-key="home" aria-label="홈"><i></i></button>
+          <button class="gk back" data-key="back" aria-label="뒤로"><svg viewBox="0 0 24 16">
+              <path d="M8 3L3 7l5 4M3 7h12a5 4 0 0 1 0 8h-4" fill="none" stroke="currentColor" stroke-width="1.7"
+                stroke-linecap="round" stroke-linejoin="round" />
+            </svg></button>
+        </div>
       </div>
-      <div class="gs-keys">
-        <button class="gk menu" data-key="menu" aria-label="메뉴"><svg viewBox="0 0 24 16"><rect x="2" y="2" width="20" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 6h12M6 10h12" stroke="currentColor" stroke-width="1.4"/></svg></button>
-        <button class="gk home" data-key="home" aria-label="홈"><i></i></button>
-        <button class="gk back" data-key="back" aria-label="뒤로"><svg viewBox="0 0 24 16"><path d="M8 3L3 7l5 4M3 7h12a5 4 0 0 1 0 8h-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      </div>
+      <button class="close-phone" data-close aria-label="휴대폰 닫기">✕</button>
     </div>
-    <button class="close-phone" data-close aria-label="휴대폰 닫기">✕</button>
-  </div>
 
-  <script src="data.js?v=202610190959"></script>
-  <script src="app.js?v=202610190959"></script>
-</body>
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
 </html>

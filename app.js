@@ -31,19 +31,10 @@
     message: `<rect x="4" y="8" width="26" height="18" rx="2" fill="${W}"/><path d="M4.8 9l12.2 9.5L29.2 9" fill="none" stroke="#c98a12" stroke-width="2"/>`,
     apps: [0, 1, 2].flatMap(r => [0, 1, 2].map(c => `<rect x="${6 + c * 8}" y="${6 + r * 8}" width="6" height="6" rx="1.2" fill="${W}"/>`)).join(""),
     internet: `<circle cx="17" cy="17" r="11" fill="none" stroke="${W}" stroke-width="2"/><ellipse cx="17" cy="17" rx="5" ry="11" fill="none" stroke="${W}" stroke-width="1.6"/><path d="M6 17h22M8 11h18M8 23h18" stroke="${W}" stroke-width="1.4"/>`,
-    camera: `<circle cx="17" cy="17" r="10" fill="#111" stroke="#9aa3ad" stroke-width="2"/><circle cx="17" cy="17" r="6" fill="#1d3b6b"/><circle cx="15" cy="15" r="2" fill="#bfe0ff"/>`,
     gallery: `<rect x="5" y="7" width="24" height="20" rx="1.5" fill="${W}"/><rect x="7.5" y="9.5" width="19" height="13" fill="#5ab0f0"/><path d="M7.5 22.5l6-7 4 4.5 3-3 6 5.5z" fill="#3c8f1e"/><circle cx="22" cy="13" r="1.8" fill="#ffe36b"/>`,
     clock: `<circle cx="17" cy="17" r="12" fill="#fff" stroke="#555" stroke-width="1.5"/><path d="M17 9v8l5 3" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round"/>`,
     memo: `<rect x="7" y="5" width="20" height="24" rx="1.5" fill="#fffbe0"/><path d="M10 11h14M10 15h14M10 19h14M10 23h9" stroke="#b08a10" stroke-width="1.5"/>`,
     music: `<path d="M13 23.5V9l12-3v14.5" fill="none" stroke="${W}" stroke-width="2.2"/><ellipse cx="10.5" cy="23.5" rx="3.6" ry="2.8" fill="${W}"/><ellipse cx="22.5" cy="20.5" rx="3.6" ry="2.8" fill="${W}"/>`,
-    calc: `<rect x="7" y="4" width="20" height="26" rx="2" fill="#2b2f35"/><rect x="9.5" y="6.5" width="15" height="6" fill="#bfe3b0"/>${[0, 1, 2].flatMap(r => [0, 1, 2].map(c => `<rect x="${9.5 + c * 5.3}" y="${15 + r * 4.8}" width="4" height="3.4" rx=".6" fill="#ddd"/>`)).join("")}`,
-    email: `<rect x="4" y="8" width="26" height="18" rx="2" fill="${W}"/><path d="M4.8 9l12.2 9.5L29.2 9" fill="none" stroke="#2e8f3a" stroke-width="2"/><circle cx="26" cy="24" r="5" fill="#ffd34d"/>`,
-    settings: `<circle cx="17" cy="17" r="5" fill="none" stroke="${W}" stroke-width="3"/>${[0, 45, 90, 135, 180, 225, 270, 315].map(a => `<rect x="15.5" y="4" width="3" height="6" rx="1" fill="${W}" transform="rotate(${a} 17 17)"/>`).join("")}`,
-    radio: `<rect x="5" y="11" width="24" height="16" rx="2" fill="${W}"/><circle cx="12" cy="19" r="4" fill="#7a4a20"/><rect x="19" y="15" width="7" height="2" fill="#7a4a20"/><rect x="19" y="19" width="7" height="2" fill="#7a4a20"/><path d="M8 11l14-6" stroke="${W}" stroke-width="1.6"/>`,
-    diary: `<rect x="8" y="5" width="18" height="24" rx="1.5" fill="#f3e2c3"/><rect x="8" y="5" width="4" height="24" fill="#8a5a2b"/><path d="M15 11h8M15 15h8M15 19h6" stroke="#8a5a2b" stroke-width="1.4"/>`,
-    market: `<path d="M8 12h18l-1.5 16h-15z" fill="${W}"/><path d="M12 12a5 5 0 0 1 10 0" fill="none" stroke="${W}" stroke-width="2"/><circle cx="14" cy="18" r="1.3" fill="#3c8f1e"/><circle cx="20" cy="18" r="1.3" fill="#3c8f1e"/>`,
-    files: `<path d="M5 10h9l2 2.5h13V27H5z" fill="#fff3c9"/><path d="M5 14h24v13H5z" fill="#ffe08a"/>`,
-    briefing: `<circle cx="13" cy="13" r="5.5" fill="#ffe36b"/><path d="M11 26h14a4.5 4.5 0 0 0-1-8.9 6 6 0 0 0-11.4 1.6A3.7 3.7 0 0 0 11 26z" fill="${W}"/>`
   };
   const APPS = {
     phone: { label: "전화", a: "#7ddc5a", b: "#2a8a18" },
@@ -51,20 +42,12 @@
     message: { label: "메시지", a: "#fde27a", b: "#e2a21b" },
     apps: { label: "애플리케이션", a: "#62b8f5", b: "#1d5fc0" },
     internet: { label: "인터넷", a: "#5cbcff", b: "#0b4fae" },
-    camera: { label: "카메라", a: "#6f757e", b: "#22252a" },
     gallery: { label: "갤러리", a: "#ffd46a", b: "#de830c" },
     calendar: { label: "캘린더", a: "#fafafa", b: "#cfd6cc" },
     clock: { label: "시계", a: "#e9ecef", b: "#9aa1a8" },
     memo: { label: "메모", a: "#fff27c", b: "#d9b425" },
     music: { label: "음악", a: "#d991f2", b: "#7f27ad" },
-    calc: { label: "계산기", a: "#a5aeb8", b: "#4a525c" },
-    email: { label: "이메일", a: "#7fd87f", b: "#2a8a36" },
-    settings: { label: "환경 설정", a: "#a6acb4", b: "#4f5660" },
-    radio: { label: "FM 라디오", a: "#d39a62", b: "#74441b" },
-    diary: { label: "미니 다이어리", a: "#c49465", b: "#6b4523" },
-    market: { label: "마켓", a: "#98d958", b: "#3a8a1a" },
-    files: { label: "내 파일", a: "#ffc95a", b: "#d9820a" },
-    briefing: { label: "데일리 브리핑", a: "#86c8ff", b: "#2a6fc6" }
+    crash: { label: "", a: "#000000", b: "#000000" }
   };
   const badge = id => {
     if (id === "phone") { const n = P.calls.filter(c => c.dir === "missed" && !c.seen).length; return n || 0; }
@@ -154,7 +137,7 @@
         ${missed ? `<div>${IC.missed}부재중 전화 ${missed}통</div>` : ""}
         ${unread ? `<div>${IC.sms}새 메시지 ${unread}개</div>` : ""}
       </div>
-      <div class="lk-pat"><p data-msg>잠금 해제 패턴을 그리세요</p><div class="pat" data-pat><svg data-svg></svg>${[0,1,2,3,4,5,6,7,8].map(i => `<i data-d="${i}"></i>`).join("")}</div></div>
+      <div class="lk-pat"><p data-msg>잠금 해제 패턴을 그리세요</p><div class="pat" data-pat><svg data-svg></svg>${[0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => `<i data-d="${i}"></i>`).join("")}</div></div>
     </section>`);
     /* 3×3 패턴 잠금: 점 두 개 이상만 이으면 어떤 모양이든 열림 */
     const pat = el.querySelector("[data-pat]"), svg = el.querySelector("[data-svg]"), msg = el.querySelector("[data-msg]"), dots = [...pat.querySelectorAll("i")];
@@ -167,15 +150,19 @@
       dots.forEach((d, i) => { d.className = path && path.includes(i) ? "on " + (state || "") : ""; });
     };
     const hit = (x, y) => { const r = pat.getBoundingClientRect(); for (let i = 0; i < 9; i++) { const [cx, cy] = ctr(i); if (Math.hypot(x - r.left - cx, y - r.top - cy) < r.width / 7.5) return i; } return -1; };
-    const add = i => { if (i < 0 || path.includes(i)) return;
+    const add = i => {
+      if (i < 0 || path.includes(i)) return;
       const l = path[path.length - 1];   // 사이에 낀 점은 자동으로 포함
       if (l !== undefined) { const m = (l + i) / 2; if ((l + i) % 2 === 0 && Math.abs((l % 3) - (i % 3)) !== 1 && Math.abs(Math.floor(l / 3) - Math.floor(i / 3)) !== 1 && !path.includes(m)) path.push(m); }
-      path.push(i); if (navigator.vibrate) try { navigator.vibrate(12); } catch (e) {} };
+      path.push(i); if (navigator.vibrate) try { navigator.vibrate(12); } catch (e) { }
+    };
     pat.addEventListener("pointerdown", e => { if (done) return; path = []; pat.setPointerCapture(e.pointerId); const r = pat.getBoundingClientRect(); cur = [e.clientX - r.left, e.clientY - r.top]; add(hit(e.clientX, e.clientY)); msg.textContent = "완료되면 손가락을 떼세요"; draw(); });
     pat.addEventListener("pointermove", e => { if (!path || done) return; const r = pat.getBoundingClientRect(); cur = [e.clientX - r.left, e.clientY - r.top]; add(hit(e.clientX, e.clientY)); draw(); });
-    const up = () => { if (!path || done) return; cur = null;
-      if (path.length >= 2) { done = true; msg.textContent = "패턴이 맞습니다"; draw("ok"); setTimeout(unlock, 350); }
-      else { msg.textContent = path.length ? "점을 2개 이상 연결하세요. 다시 시도하세요." : "잠금 해제 패턴을 그리세요"; draw("bad"); setTimeout(() => { if (!done) { path = null; draw(); } }, 900); } };
+    const up = () => {
+      if (!path || done) return; cur = null;
+      if (path.length >= 2) { done = true; msg.textContent = "패턴이 틀렸습니다. 시스템이 손상되었습니다."; draw("ok"); setTimeout(unlock, 350); }
+      else { msg.textContent = path.length ? "점을 2개 이상 연결하세요. 다시 시도하세요." : "잠금 해제 패턴을 그리세요"; draw("bad"); setTimeout(() => { if (!done) { path = null; draw(); } }, 900); }
+    };
     pat.addEventListener("pointerup", up); pat.addEventListener("pointercancel", up);
     return el;
   }
@@ -198,7 +185,7 @@
     return el;
   }
   function drawer() {
-    const ids = ["phone", "contacts", "message", "internet", "gallery", "calendar", "clock", "memo", "music"];
+    const ids = ["phone", "contacts", "message", "internet", "gallery", "calendar", "clock", "memo", "music", "crash"];
     const pages = []; for (let i = 0; i < ids.length; i += 16) pages.push(ids.slice(i, i + 16));
     const el = h(`<section class="scr drawer"><div class="dr-head"></div>
       <div class="hm-pages"><div class="hm-track">${pages.map(p => `<div class="hm-page">${p.map(id => appBtn(id)).join("")}</div>`).join("")}</div></div></section>`);
@@ -210,10 +197,10 @@
   function openApp(id) {
     const f = {
       apps: drawer, phone: () => phoneApp("keypad"), contacts: contactsApp, message: messagesApp, memo: memoApp,
-      calendar: calendarApp, clock: clockApp, music: musicApp, gallery: galleryApp, internet: internetApp
+      calendar: calendarApp, clock: clockApp, music: musicApp, gallery: galleryApp, internet: internetApp, crash: scaryApp
     }[id];
     if (f) { push(f()); return; }
-    toast(id === "camera" ? "카메라를 시작할 수 없습니다." : "지원하지 않는 기능입니다.");
+    toast("지원하지 않는 기능입니다.");
   }
   screens.addEventListener("click", e => { const b = e.target.closest("[data-app]"); if (b && !locked) openApp(b.dataset.app); });
 
@@ -226,8 +213,10 @@
   function contactRows() {
     const list = [...P.contacts].sort((a, b) => a.name.localeCompare(b.name, "ko"));
     let last = "", out = "";
-    list.forEach(c => { const i = initial(c.name); if (i !== last) { out += `<div class="sec">${i}</div>`; last = i; }
-      out += `<button class="row" data-contact="${esc(c.name)}" style="width:100%;text-align:left"><span class="ph">${AV}</span><span class="tx"><b>${esc(c.name)}</b><small>${esc(c.number)}</small></span></button>`; });
+    list.forEach(c => {
+      const i = initial(c.name); if (i !== last) { out += `<div class="sec">${i}</div>`; last = i; }
+      out += `<button class="row" data-contact="${esc(c.name)}" style="width:100%;text-align:left"><span class="ph">${AV}</span><span class="tx"><b>${esc(c.name)}</b><small>${esc(c.number)}</small></span></button>`;
+    });
     return out || `<div class="empty">연락처가 없습니다.</div>`;
   }
   function contactDetail(name) {
@@ -292,13 +281,13 @@
   /* 통화 소리: 수신음(뚜— 뚜—)과 삐 소리 */
   let audioCtx = null;
   function ringback() {
-    const ctx = audioCtx; if (!ctx) return () => {};
-    try { if (ctx.state === "suspended") ctx.resume(); } catch (e) {}
+    const ctx = audioCtx; if (!ctx) return () => { };
+    try { if (ctx.state === "suspended") ctx.resume(); } catch (e) { }
     const g = ctx.createGain(); g.gain.value = 0; g.connect(ctx.destination);
     const os = [440, 480].map(f => { const o = ctx.createOscillator(); o.frequency.value = f; o.connect(g); o.start(); return o; });
     const cycle = () => { const t = ctx.currentTime; g.gain.setValueAtTime(.05, t); g.gain.setValueAtTime(0, t + 1); };
     cycle(); const iv = setInterval(cycle, 3000); let done = false;
-    return () => { if (done) return; done = true; clearInterval(iv); try { os.forEach(o => o.stop()); g.disconnect(); } catch (e) {} };
+    return () => { if (done) return; done = true; clearInterval(iv); try { os.forEach(o => o.stop()); g.disconnect(); } catch (e) { } };
   }
   function beep() {
     const ctx = audioCtx; if (!ctx) return;
@@ -351,7 +340,7 @@
   function playSound(url) {
     let src = null, stopped = false;
     if (audioCtx) { loadSound(url); sounds[url].then(buf => { if (!buf || stopped) return; src = audioCtx.createBufferSource(); src.buffer = buf; src.connect(audioCtx.destination); src.start(); }); }
-    return () => { stopped = true; try { src && src.stop(); } catch (e) {} };
+    return () => { stopped = true; try { src && src.stop(); } catch (e) { } };
   }
   function pickup(hard) {   // 전화 받을 때 '달—칵' (두 번에 나눠 느리게). hard: 급하게 낚아채듯 크게 '덜컥'
     const ctx = audioCtx; if (!ctx) return;
@@ -372,7 +361,7 @@
     tick(t + .17, .5, 2000, .016, .16, 150);     // 칵
   }
   function lineHum() {   // 통화 중 수화기 너머 은은한 '웅—' (아주 작게)
-    const ctx = audioCtx; if (!ctx) return () => {};
+    const ctx = audioCtx; if (!ctx) return () => { };
     const len = ctx.sampleRate * 3, buf = ctx.createBuffer(1, len, ctx.sampleRate), ch = buf.getChannelData(0);
     let last = 0; for (let i = 0; i < len; i++) { last = (last + .02 * (Math.random() * 2 - 1)) / 1.02; ch[i] = last * 3.5; }   // 낮게 깔리는 잡음
     const s = ctx.createBufferSource(); s.buffer = buf; s.loop = true;
@@ -381,7 +370,7 @@
     const g = ctx.createGain(), t = ctx.currentTime; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.11, t + .6);
     s.connect(lp); lp.connect(g); hum.connect(hg); hg.connect(g); g.connect(ctx.destination); s.start(); hum.start();
     let done = false;
-    return () => { if (done) return; done = true; const t2 = ctx.currentTime; g.gain.cancelScheduledValues(t2); g.gain.setValueAtTime(g.gain.value, t2); g.gain.linearRampToValueAtTime(0, t2 + .25); try { s.stop(t2 + .3); hum.stop(t2 + .3); } catch (e) {} };
+    return () => { if (done) return; done = true; const t2 = ctx.currentTime; g.gain.cancelScheduledValues(t2); g.gain.setValueAtTime(g.gain.value, t2); g.gain.linearRampToValueAtTime(0, t2 + .25); try { s.stop(t2 + .3); hum.stop(t2 + .3); } catch (e) { } };
   }
   /* 통화 화면 (갤럭시 S 스타일): 이름·번호 / 일시중단·시간 / 녹음·다이얼·통화 종료·스피커·송화음 차단·Bluetooth */
   const DTMF = { 1: [697, 1209], 2: [697, 1336], 3: [697, 1477], 4: [770, 1209], 5: [770, 1336], 6: [770, 1477], 7: [852, 1209], 8: [852, 1336], 9: [852, 1477], "*": [941, 1209], 0: [941, 1336], "#": [941, 1477] };
@@ -474,7 +463,7 @@
           const playMsg = (VM, intro) => {
             stage = 1; if (stopMsg) stopMsg();
             const go = () => guide(VM.label || "", 3000, () => {
-              say(""); const stopSnd = VM.sound ? playSound(VM.sound) : () => {}, stopHum = lineHum();
+              say(""); const stopSnd = VM.sound ? playSound(VM.sound) : () => { }, stopHum = lineHum();
               stopMsg = () => { stopSnd(); stopHum(); }; stops.push(stopMsg);
               (VM.lines || []).forEach(l => timers.push(setTimeout(() => { if (stage === 1) { say(l.text); line.classList.toggle("me", !!l.me); } }, l.at)));
               timers.push(setTimeout(() => { stage = 3; if (stopMsg) stopMsg(); line.classList.remove("me"); say(multi ? "메시지가 끝났습니다. 다른 메시지를 들으시려면 번호를, 종료하시려면 통화 종료를 눌러 주세요." : "메시지가 끝났습니다. 다시 들으시려면 1번, 종료하시려면 통화 종료를 눌러 주세요."); }, (VM.ms || 19000) + 400));
@@ -505,8 +494,10 @@
   /* ================= 메시지 ================= */
   const threadFor = name => P.messages.find(t => t.name === name) || { name, msgs: [], _new: true };
   function threadRows() {
-    return P.messages.map((t, i) => { const lm = [...t.msgs].reverse().find(m => m.text || m.file || m.audio) || {}, last = lm.file || lm.audio ? { text: "[파일] " + (lm.file || lm.audio), time: lm.time } : lm; const d = [...t.msgs].reverse().find(m => m.date);
-      return `<button class="row${t.unread ? " unread" : ""}" data-thread="${i}" style="width:100%;text-align:left"><span class="ph">${AV}</span><span class="tx"><b>${esc(nameOf(t.name))}</b><small>${esc(last.text || "")}</small></span><span class="rt">${esc((() => { const md = d && d.date.match(/(\d+)월 (\d+)일/); return md && !(+md[1] === TODAY.getMonth() + 1 && +md[2] === TODAY.getDate()) ? `${md[1]}월 ${md[2]}일` : (last.time || ""); })())}${t.unread ? `<br><span class="cnt">${t.unread}</span>` : ""}</span></button>`; }).join("") || `<div class="empty">메시지가 없습니다.</div>`;
+    return P.messages.map((t, i) => {
+      const lm = [...t.msgs].reverse().find(m => m.text || m.file || m.audio) || {}, last = lm.file || lm.audio ? { text: "[파일] " + (lm.file || lm.audio), time: lm.time } : lm; const d = [...t.msgs].reverse().find(m => m.date);
+      return `<button class="row${t.unread ? " unread" : ""}" data-thread="${i}" style="width:100%;text-align:left"><span class="ph">${AV}</span><span class="tx"><b>${esc(nameOf(t.name))}</b><small>${esc(last.text || "")}</small></span><span class="rt">${esc((() => { const md = d && d.date.match(/(\d+)월 (\d+)일/); return md && !(+md[1] === TODAY.getMonth() + 1 && +md[2] === TODAY.getDate()) ? `${md[1]}월 ${md[2]}일` : (last.time || ""); })())}${t.unread ? `<br><span class="cnt">${t.unread}</span>` : ""}</span></button>`;
+    }).join("") || `<div class="empty">메시지가 없습니다.</div>`;
   }
   function messagesApp() {
     const el = h(`<section class="scr"><div class="tbar">메시지</div><div class="scroll list" data-list>${threadRows()}</div></section>`);
@@ -624,14 +615,16 @@
   function ringtone() {   // 수신 벨소리 (짧은 마림바 같은 반복음) + 진동
     const ctx = audioCtx; let iv = null, done = false;
     const play = () => {
-      try { navigator.vibrate && navigator.vibrate([400, 200, 400]); } catch (e) {}
+      try { navigator.vibrate && navigator.vibrate([400, 200, 400]); } catch (e) { }
       if (!ctx) return; const t = ctx.currentTime;
-      [659, 784, 988, 784, 659, 523].forEach((f, i) => { const o = ctx.createOscillator(), g = ctx.createGain(), s = t + i * .16;
+      [659, 784, 988, 784, 659, 523].forEach((f, i) => {
+        const o = ctx.createOscillator(), g = ctx.createGain(), s = t + i * .16;
         o.type = "triangle"; o.frequency.value = f; g.gain.setValueAtTime(0, s); g.gain.linearRampToValueAtTime(.09, s + .01); g.gain.exponentialRampToValueAtTime(.001, s + .3);
-        o.connect(g); g.connect(ctx.destination); o.start(s); o.stop(s + .32); });
+        o.connect(g); g.connect(ctx.destination); o.start(s); o.stop(s + .32);
+      });
     };
     play(); iv = setInterval(play, 2200);
-    return () => { if (done) return; done = true; clearInterval(iv); try { navigator.vibrate && navigator.vibrate(0); } catch (e) {} };
+    return () => { if (done) return; done = true; clearInterval(iv); try { navigator.vibrate && navigator.vibrate(0); } catch (e) { } };
   }
   function incomingThreat() {
     const L = P.threatCalls || []; if (!L.length) return;
@@ -680,10 +673,12 @@
       const sec = t1 ? Math.floor((Date.now() - t1) / 1000) : 0;
       P.calls.unshift(t1 ? { name, dir: "in", when: nowLabel(), length: `${Math.floor(sec / 60)}분 ${sec % 60}초` } : { name, dir: "missed", when: nowLabel() });
       sbIcons(); stack.forEach(s => s._refresh && s !== el && s._refresh());
-      if (cut) { line.classList.remove("show"); [0, .25, .5].forEach(d => setTimeout(beep, d * 1000)); }
+      if (cut) { line.classList.remove("show");[0, .25, .5].forEach(d => setTimeout(beep, d * 1000)); }
       st.textContent = dir || "통화 종료"; el.querySelector("[data-btns]").hidden = true;
-      setTimeout(() => { if (stack.includes(el)) { const i = stack.indexOf(el); if (i === stack.length - 1) pop(); else { stack.splice(i, 1); el.remove(); } } inCall = false;
-        if (!answered && tries < 2) setTimeout(() => followCall(name, CALL, tries + 1), 15000); }, cut ? 1600 : 900);
+      setTimeout(() => {
+        if (stack.includes(el)) { const i = stack.indexOf(el); if (i === stack.length - 1) pop(); else { stack.splice(i, 1); el.remove(); } } inCall = false;
+        if (!answered && tries < 2) setTimeout(() => followCall(name, CALL, tries + 1), 15000);
+      }, cut ? 1600 : 900);
     };
     el._onClose = () => { if (!done) close(); };
     el.querySelector("[data-no]").onclick = () => close("거절됨");
@@ -717,9 +712,9 @@
     $("#screen").appendChild(off);
     beep(); setTimeout(beep, 300);
     setTimeout(() => {
-      stack.forEach(s => { try { s._onClose && s._onClose(); } catch (e) {} });
+      stack.forEach(s => { try { s._onClose && s._onClose(); } catch (e) { } });
       off.classList.add("black");
-      try { const ctx = audioCtx, t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(880, t); o.frequency.exponentialRampToValueAtTime(110, t + .8); g.gain.setValueAtTime(.06, t); g.gain.linearRampToValueAtTime(0, t + .85); o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + .9); } catch (e) {}
+      try { const ctx = audioCtx, t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(880, t); o.frequency.exponentialRampToValueAtTime(110, t + .8); g.gain.setValueAtTime(.06, t); g.gain.linearRampToValueAtTime(0, t + .85); o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + .9); } catch (e) { }
     }, 2600);
   }
 
@@ -761,8 +756,10 @@
   function memoApp() {
     const el = h(`<section class="scr"><div class="tbar">메모<small>${(P.memos || []).length}개</small></div>
       <div class="scroll"><div class="memo-grid">${(P.memos || []).map((m, i) => `<button class="memo" data-memo="${i}"><small>${esc(m.date)}</small>${esc(m.text)}</button>`).join("")}</div></div></section>`);
-    el.addEventListener("click", e => { const b = e.target.closest("[data-memo]"); if (!b) return; const m = P.memos[+b.dataset.memo];
-      push(h(`<section class="scr"><div class="tbar">메모<small>${esc(m.date)}</small></div><div class="memo-full">${esc(m.text)}</div></section>`)); });
+    el.addEventListener("click", e => {
+      const b = e.target.closest("[data-memo]"); if (!b) return; const m = P.memos[+b.dataset.memo];
+      push(h(`<section class="scr"><div class="tbar">메모<small>${esc(m.date)}</small></div><div class="memo-full">${esc(m.text)}</div></section>`));
+    });
     return el;
   }
 
@@ -790,6 +787,20 @@
     el.querySelector("[data-grid]").onclick = e => { const s = e.target.closest("[data-d]"); if (s) { sel = parseD(s.dataset.d); render(); } };
     render();
     return el;
+  }
+
+  /* ================= ? ================= */
+  function scaryApp() {
+    return h(`
+		<div class="scary-app">
+      데이토
+			<img src="img/scary.webp" style="max-width:100%; height:auto;" />
+      안녕?
+      <br>저는 ███이에요.
+      <br>최근에 당신이 도주한다면서... 최고에요.
+      <br>그렇다면 링크에 보낼게요.
+		</div>
+     `);
   }
 
   /* ================= 시계 ================= */
@@ -827,9 +838,11 @@
       au.onloadedmetadata = () => dur.textContent = fmt(au.duration);
       au.ontimeupdate = () => {
         const c = au.currentTime; cur.textContent = fmt(c); if (au.duration) bar.style.width = (c / au.duration * 100) + "%";
-        if (cap) { let L = null; s.lines.forEach(l => { if (c * 1000 >= l.at && c * 1000 < l.at + (l.ms || 3500)) L = l; });
+        if (cap) {
+          let L = null; s.lines.forEach(l => { if (c * 1000 >= l.at && c * 1000 < l.at + (l.ms || 3500)) L = l; });
           const html = L ? (L.who ? `<b>${esc(L.who)}</b>` : "") + `<span${L.fx ? ' class="fx"' : ""}>${esc(L.text)}</span>` : "";
-          if (cap.innerHTML !== html) cap.innerHTML = html; }
+          if (cap.innerHTML !== html) cap.innerHTML = html;
+        }
       };
       au.onended = () => { on = false; ico(); };
       au.onerror = () => { on = false; ico(); toast("파일을 재생할 수 없습니다."); };
@@ -851,11 +864,15 @@
   const tint = k => `linear-gradient(135deg,hsl(${(k * 67) % 360} 35% 38%),hsl(${(k * 67 + 40) % 360} 30% 18%))`;
   function galleryApp() {
     const el = h(`<section class="scr"><div class="tbar">갤러리</div><div class="scroll list">${(P.gallery || []).map((a, i) => `<button class="row" data-album="${i}" style="width:100%;text-align:left"><span class="ph" style="background:${a.photos[0] && a.photos[0].img ? `url('${esc(a.photos[0].img)}') center/cover` : tint(i)}"></span><span class="tx"><b>${esc(a.album)}</b><small>${a.photos.length}개</small></span></button>`).join("")}</div></section>`);
-    el.addEventListener("click", e => { const b = e.target.closest("[data-album]"); if (!b) return; const A = P.gallery[+b.dataset.album];
+    el.addEventListener("click", e => {
+      const b = e.target.closest("[data-album]"); if (!b) return; const A = P.gallery[+b.dataset.album];
       const g = h(`<section class="scr"><div class="tbar">${esc(A.album)}</div><div class="scroll"><div class="gal-grid">${A.photos.map((p, k) => `<button data-ph="${k}" style="background:${p.img ? `url('${esc(p.img)}') center/cover` : tint(k + 3)}">${p.img ? "" : esc(p.caption || "")}</button>`).join("")}</div></div></section>`);
-      g.addEventListener("click", ev => { const q = ev.target.closest("[data-ph]"); if (!q) return; const p = A.photos[+q.dataset.ph];
-        push(h(`<section class="scr viewer"><div class="pic" style="${p.img ? `background-image:url('${esc(p.img)}')` : `background:${tint(+q.dataset.ph + 3)}`}">${p.img ? "" : esc(p.caption || "")}</div></section>`)); });
-      push(g); });
+      g.addEventListener("click", ev => {
+        const q = ev.target.closest("[data-ph]"); if (!q) return; const p = A.photos[+q.dataset.ph];
+        push(h(`<section class="scr viewer"><div class="pic" style="${p.img ? `background-image:url('${esc(p.img)}')` : `background:${tint(+q.dataset.ph + 3)}`}">${p.img ? "" : esc(p.caption || "")}</div></section>`));
+      });
+      push(g);
+    });
     return el;
   }
 
@@ -912,19 +929,19 @@
     if (layer.classList.contains("open")) return;
     if (t0 === null) { t0 = Date.now(); batteryLoop(); }
     harassLoop(); threatLoop();
-    try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); else if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) {}
+    try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); else if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) { }
     Object.values(P.callScripts || {}).forEach(s => { (s.lines || []).forEach(l => l && l.sound && loadSound(l.sound)); s.pickupSound && loadSound(s.pickupSound); });
     fit();
     if (!stack.length) { push(lockScreen()); }
     sbIcons(); tick();
     layer.classList.add("open"); layer.setAttribute("aria-hidden", "false");
-    if (!DIRECT) try { history.pushState({ phone: 1 }, "", "#phone"); } catch (e) {}
+    if (!DIRECT) try { history.pushState({ phone: 1 }, "", "#phone"); } catch (e) { }
   }
   function closePhone(fromPop) {
     if (DIRECT) return;   // 본문 없이 휴대폰만 보여 주는 모드: 닫히지 않음
     if (!layer.classList.contains("open")) return;
     layer.classList.remove("open"); layer.setAttribute("aria-hidden", "true");
-    if (!fromPop) { try { if (location.hash === "#phone") history.back(); } catch (e) {} }
+    if (!fromPop) { try { if (location.hash === "#phone") history.back(); } catch (e) { } }
   }
   story.addEventListener("click", e => { if (e.target.closest("[data-open]")) { e.preventDefault(); openPhone(); } });
   layer.addEventListener("click", e => { if (e.target.closest("[data-close]")) closePhone(); });
@@ -932,7 +949,7 @@
   addEventListener("keydown", e => { if (e.key === "Escape") closePhone(); });
   if (DIRECT) {   // 본문이 없으면 페이지를 열자마자 휴대폰 화면. 소리는 첫 터치 때 켜짐 (브라우저 정책)
     document.body.classList.add("direct"); story.remove();
-    const wake = () => { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) {} };
+    const wake = () => { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) { } };
     addEventListener("pointerdown", wake, { capture: true }); addEventListener("keydown", wake, { capture: true });
     openPhone();
   }
