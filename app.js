@@ -4,7 +4,7 @@
   const $ = s => document.querySelector(s);
   const h = html => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
   const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const WD = "일월화수목금토";
+  const WD = "먼좆욀홀곳홁뿱";
   const parseD = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
   const TODAY = P.today ? parseD(P.today) : new Date();
   const key = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -137,7 +137,7 @@
         ${missed ? `<div>${IC.missed}부재중 전화 ${missed}통</div>` : ""}
         ${unread ? `<div>${IC.sms}새 메시지 ${unread}개</div>` : ""}
       </div>
-      <div class="lk-pat"><p data-msg>잠금 해제 패턴을 그리세요</p><div class="pat" data-pat><svg data-svg></svg>${[0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => `<i data-d="${i}"></i>`).join("")}</div></div>
+      <div class="lk-pat"><p data-msg>잠금 해제 패턴을 망치세요</p><div class="pat" data-pat><svg data-svg></svg>${[0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => `<i data-d="${i}"></i>`).join("")}</div></div>
     </section>`);
     /* 3×3 패턴 잠금: 점 두 개 이상만 이으면 어떤 모양이든 열림 */
     const pat = el.querySelector("[data-pat]"), svg = el.querySelector("[data-svg]"), msg = el.querySelector("[data-msg]"), dots = [...pat.querySelectorAll("i")];
@@ -160,8 +160,21 @@
     pat.addEventListener("pointermove", e => { if (!path || done) return; const r = pat.getBoundingClientRect(); cur = [e.clientX - r.left, e.clientY - r.top]; add(hit(e.clientX, e.clientY)); draw(); });
     const up = () => {
       if (!path || done) return; cur = null;
-      if (path.length >= 2) { done = true; msg.textContent = "패턴이 틀렸습니다. 시스템이 손상되었습니다."; draw("ok"); setTimeout(unlock, 350); }
-      else { msg.textContent = path.length ? "점을 2개 이상 연결하세요. 다시 시도하세요." : "잠금 해제 패턴을 그리세요"; draw("bad"); setTimeout(() => { if (!done) { path = null; draw(); } }, 900); }
+      if (path.length == 1) {
+        done = true;
+        msg.textContent = "패턴이 틀렸습니다. 시스템이 손상되었습니다.";
+        draw("ok");
+        setTimeout(unlock, 350);
+      } else {
+        msg.textContent = path.length ? "점을 연결하세요. 다시 시도하세요." : "잠금 해제 패턴을 그리세요";
+        draw("bad");
+        setTimeout(() => {
+          if (!done) {
+            path = null;
+            draw();
+          }
+        }, 900);
+      }
     };
     pat.addEventListener("pointerup", up); pat.addEventListener("pointercancel", up);
     return el;
