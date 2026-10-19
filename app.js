@@ -1,6 +1,5 @@
 (() => {
-  const P = window.PHONE, S = window.STORY || {};
-  const DIRECT = !(S.paragraphs || []).some(p => p);   // 본문이 비어 있으면 바로 휴대폰
+  const P = window.PHONE;
   const $ = s => document.querySelector(s);
   const h = html => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
   const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -8,6 +7,8 @@
   const parseD = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
   const TODAY = P.today ? parseD(P.today) : new Date();
   const key = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+  let harass_disabled = false;  
 
   /* ================= 시계 ================= */
   const [H0, M0, S0] = (P.time || "12:00:00").split(":").map(Number);
@@ -17,11 +18,6 @@
   const hm = o => `${(o.h % 12) || 12}:${String(o.m).padStart(2, "0")}`;
   const nowLabel = () => { const o = now(); return `${ampm(o)} ${hm(o)}`; };
   const dateLabel = d => `${d.getMonth() + 1}월 ${d.getDate()}일 ${WD[d.getDay()]}요일`;
-
-  /* ================= 본문 ================= */
-  const story = $("#story");
-  story.innerHTML = (S.title ? `<h1>${esc(S.title)}</h1>` : "") + (S.paragraphs || []).map(p => p === "" ? `<p class="gap"></p>` :
-    `<p>${esc(p).replace(/\[\[(.+?)\]\]/g, (_, t) => `<a class="phone-link" data-open>${t}</a>`)}</p>`).join("");
 
   /* ================= 아이콘 ================= */
   const W = "#fff";
@@ -47,7 +43,7 @@
     clock: { label: "시계", a: "#e9ecef", b: "#9aa1a8" },
     memo: { label: "메모", a: "#fff27c", b: "#d9b425" },
     music: { label: "음악", a: "#d991f2", b: "#7f27ad" },
-    crash: { label: "", a: "#000000", b: "#000000" }
+    scary: { label: "", a: "#000000", b: "#000000" }
   };
   const badge = id => {
     if (id === "phone") { const n = P.calls.filter(c => c.dir === "missed" && !c.seen).length; return n || 0; }
@@ -160,12 +156,13 @@
     pat.addEventListener("pointermove", e => { if (!path || done) return; const r = pat.getBoundingClientRect(); cur = [e.clientX - r.left, e.clientY - r.top]; add(hit(e.clientX, e.clientY)); draw(); });
     const up = () => {
       if (!path || done) return; cur = null;
-        done = true;
-        msg.textContent = "패턴이 틀렸습니다. 시스템이 손상되었습니다.";
-        draw("ok");
-        setTimeout(unlock, 350);
+      done = true;
+      msg.textContent = "패턴이 틀렸습니다. 시스템이 심하게 손상되었습니다.";
+      draw("ok");
+      setTimeout(unlock, 350);
     };
-    pat.addEventListener("pointerup", up); pat.addEventListener("pointercancel", up);
+    pat.addEventListener("pointerup", up);
+    pat.addEventListener("pointercancel", up);
     return el;
   }
   function unlock() {
@@ -177,7 +174,7 @@
 
   /* ================= 홈 ================= */
   function homeScreen() {
-    const page = `<div class="wg wg-clock"><div><div class="t" data-now></div><div class="d">${dateLabel(TODAY)}</div></div><div class="w">서울<b>9°</b>맑음</div></div>${["internet", "calendar", "memo", "clock", "gallery", "music"].map(id => appBtn(id)).join("")}`;
+    const page = `<div class="wg wg-clock"><div><div class="t" data-now></div><div class="d">${dateLabel(TODAY)}</div></div><div class="w">모리오초<b>9999°</b>매우맑음</div></div>${["internet", "calendar", "memo", "clock", "gallery", "music"].map(id => appBtn(id)).join("")}`;
     const el = h(`<section class="scr home">${wallHTML()}
       <div class="hm-dots"></div>
       <div class="hm-pages"><div class="hm-track"><div class="hm-page">${page}</div></div></div>
@@ -187,7 +184,7 @@
     return el;
   }
   function drawer() {
-    const ids = ["phone", "contacts", "message", "internet", "gallery", "calendar", "clock", "memo", "music", "crash"];
+    const ids = ["phone", "contacts", "message", "internet", "gallery", "calendar", "clock", "memo", "music", "scary"];
     const pages = []; for (let i = 0; i < ids.length; i += 16) pages.push(ids.slice(i, i + 16));
     const el = h(`<section class="scr drawer"><div class="dr-head"></div>
       <div class="hm-pages"><div class="hm-track">${pages.map(p => `<div class="hm-page">${p.map(id => appBtn(id)).join("")}</div>`).join("")}</div></div></section>`);
@@ -199,7 +196,7 @@
   function openApp(id) {
     const f = {
       apps: drawer, phone: () => phoneApp("keypad"), contacts: contactsApp, message: messagesApp, memo: memoApp,
-      calendar: calendarApp, clock: clockApp, music: musicApp, gallery: galleryApp, internet: internetApp, crash: scaryApp
+      calendar: calendarApp, clock: clockApp, music: musicApp, gallery: galleryApp, internet: internetApp, scary: scaryApp
     }[id];
     if (f) { push(f()); return; }
     toast("지원하지 않는 기능입니다.");
@@ -562,7 +559,6 @@
     clearTimeout(tickerT); tickerT = setTimeout(() => tk.classList.remove("show"), 3200);
   }
   function deliverSMS(name, text) {
-    if (dead) return;
     let T = P.messages.find(t => t.name === name);
     if (T) P.messages.splice(P.messages.indexOf(T), 1); else T = { name, msgs: [] };
     const dl = `${TODAY.getFullYear()}년 ${dateLabel(TODAY)}`, m = { text, time: nowLabel() }, top = stack[stack.length - 1];
@@ -598,11 +594,14 @@
     [].concat(L[rnd(0, L.length - 1)]).forEach(r => { const msg = fill(r); setTimeout(() => deliverSMS(num, msg), t); t += smsGap(msg); });
   }
   function harassLoop() {
-    if (harassOn || !(P.harass || []).length) return; harassOn = true;
+    if (harassOn || !(P.harass || []).length) return;
+    
+    harassOn = true;
     const next = () => setTimeout(burst, rnd(7, 14) * 1000);   // 7초~14초 간격
     function burst() {
       const n = rnd(1, 3), num = randomNumber(); let at = 0;   // 한 번에 한 명이 1~3개
       for (let i = 0; i < n; i++) {
+        if (harass_disabled) continue;
         let k; do { k = rnd(0, P.harass.length - 1); } while (k === lastH && P.harass.length > 1); lastH = k;
         const who = num, txt = P.harass[k]; harassFrom.add(num);
         setTimeout(() => deliverSMS(who, txt), at); at += smsGap(txt);
@@ -662,7 +661,6 @@
   }
   /* 문자 답장이 다 돌면 걸려 오는 전화 (예: 강민재) */
   function followCall(name, CALL, tries) {
-    if (dead) return;
     if (inCall) return setTimeout(() => followCall(name, CALL, tries), 4000);
     inCall = true;
     const number = numberOf(name);
@@ -692,38 +690,17 @@
       draw(); tmr = setInterval(draw, 1000);
       let at = CALL.firstAt || 1200;
       CALL.lines.forEach(l => { timers.push(setTimeout(() => { line.textContent = l.text; line.classList.toggle("me", !!l.me); line.classList.add("show"); }, at)); at += l.ms || Math.max(2200, l.text.length * 120); });
-      timers.push(setTimeout(() => close("통화 종료", true), at));   // 마지막 말에서 뚝 끊김
+      timers.push(setTimeout(() => close("통화 종료", true), at)); // 마지막 말에서 뚝 끊김
     };
     timers.push(setTimeout(() => { if (!t1) close("부재중 전화"); }, 30000));
     push(el);
   }
 
-  /* ================= 배터리: 4분에 1%씩, 0%가 되면 전원이 꺼지고 다시 켜지지 않음 ================= */
-  let dead = false;
-  function batteryLoop() {
-    const iv = setInterval(() => {
-      if (dead) return clearInterval(iv);
-      P.battery = Math.max(0, (P.battery ?? 3) - 1); setBat();
-      if (P.battery > 0) { beep(); toast(`배터리가 부족합니다 (${P.battery}%). 충전하세요.`); }
-      else { clearInterval(iv); shutdown(); }
-    }, 4 * 60 * 1000);
-  }
-  function shutdown() {
-    dead = true; inCall = true;
-    const off = h(`<div class="dead"><p>배터리가 부족합니다.<br>전원이 꺼집니다.</p></div>`);
-    $("#screen").appendChild(off);
-    beep(); setTimeout(beep, 300);
-    setTimeout(() => {
-      stack.forEach(s => { try { s._onClose && s._onClose(); } catch (e) { } });
-      off.classList.add("black");
-      try { const ctx = audioCtx, t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(880, t); o.frequency.exponentialRampToValueAtTime(110, t + .8); g.gain.setValueAtTime(.06, t); g.gain.linearRampToValueAtTime(0, t + .85); o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + .9); } catch (e) { }
-    }, 2600);
-  }
-
   let threatOn = false;
   function threatLoop() {
-    if (threatOn) return; threatOn = true;
-    const next = () => setTimeout(() => { if (dead) return; if (!inCall && layer.classList.contains("open")) incomingThreat(); next(); }, rnd(30, 120) * 1000);   // 30초~2분 간격
+    if (threatOn) return;
+    threatOn = true;
+    const next = () => setTimeout(() => { if (!inCall && layer.classList.contains("open") && !harass_disabled) incomingThreat(); next(); }, rnd(30, 120) * 1000);   // 30초~2분 간격
     next();
   }
 
@@ -793,16 +770,25 @@
 
   /* ================= ? ================= */
   function scaryApp() {
-    return h(`
-		<div class="scary-app">
-      데이토
-			<img src="img/scary.webp" style="max-width:100%; height:auto;" />
-      안녕?
-      <br>저는 ███이에요.
-      <br>최근에 당신이 도주한다면서... 최고에요.
-      <br>그렇다면 링크에 보낼게요.
-		</div>
+    const el = h(`
+		  <div class="scary-app">
+        데이토
+        <br><br>안녕?
+        <br>저는 ███이에요.
+        <br>저는 ??세, 여성.
+        <br>최근에 당신이 도주한다면서... 최고에요.
+        <br>그렇다면 이거 보낼께요.
+        <br><input type="checkbox" id="disable_harrass" name="disable_harrass" />문자 비난 멈추기
+		  </div>
      `);
+
+    const checkbox = el.querySelector("#disable_harrass");
+    checkbox.checked = harass_disabled;
+    checkbox.addEventListener("change", () => {
+      harass_disabled = checkbox.checked;
+    });
+
+    return el
   }
 
   /* ================= 시계 ================= */
@@ -912,8 +898,7 @@
   /* ================= 하드웨어 버튼 ================= */
   document.querySelectorAll("[data-key]").forEach(b => b.addEventListener("click", () => {
     const k = b.dataset.key;
-    if (dead) return;
-    if (k === "back" && (locked || stack.length <= 1)) { closePhone(); return; }   // 첫 화면에서 뒤로 = 본문으로
+    if (k === "back" && (locked || stack.length <= 1)) return; // 첫 화면에서 뒤로 = 본문으로
     if (locked) return;
     if (k === "back") pop();
     else if (k === "home") popToRoot();
@@ -927,32 +912,19 @@
     body.style.transform = `scale(${s})`;
   }
   addEventListener("resize", fit);
-  function openPhone() {
-    if (layer.classList.contains("open")) return;
-    if (t0 === null) { t0 = Date.now(); batteryLoop(); }
-    harassLoop(); threatLoop();
-    try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); else if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) { }
-    Object.values(P.callScripts || {}).forEach(s => { (s.lines || []).forEach(l => l && l.sound && loadSound(l.sound)); s.pickupSound && loadSound(s.pickupSound); });
-    fit();
-    if (!stack.length) { push(lockScreen()); }
-    sbIcons(); tick();
-    layer.classList.add("open"); layer.setAttribute("aria-hidden", "false");
-    if (!DIRECT) try { history.pushState({ phone: 1 }, "", "#phone"); } catch (e) { }
-  }
-  function closePhone(fromPop) {
-    if (DIRECT) return;   // 본문 없이 휴대폰만 보여 주는 모드: 닫히지 않음
-    if (!layer.classList.contains("open")) return;
-    layer.classList.remove("open"); layer.setAttribute("aria-hidden", "true");
-    if (!fromPop) { try { if (location.hash === "#phone") history.back(); } catch (e) { } }
-  }
-  story.addEventListener("click", e => { if (e.target.closest("[data-open]")) { e.preventDefault(); openPhone(); } });
-  layer.addEventListener("click", e => { if (e.target.closest("[data-close]")) closePhone(); });
-  addEventListener("popstate", () => closePhone(true));
-  addEventListener("keydown", e => { if (e.key === "Escape") closePhone(); });
-  if (DIRECT) {   // 본문이 없으면 페이지를 열자마자 휴대폰 화면. 소리는 첫 터치 때 켜짐 (브라우저 정책)
-    document.body.classList.add("direct"); story.remove();
-    const wake = () => { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) { } };
-    addEventListener("pointerdown", wake, { capture: true }); addEventListener("keydown", wake, { capture: true });
-    openPhone();
-  }
+
+  const wake = () => { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) { } };
+  addEventListener("pointerdown", wake, { capture: true }); addEventListener("keydown", wake, { capture: true });
+
+  if (layer.classList.contains("open")) return;
+  if (t0 === null) t0 = Date.now();
+  harassLoop();
+  threatLoop();
+  try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); else if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) { }
+  Object.values(P.callScripts || {}).forEach(s => { (s.lines || []).forEach(l => l && l.sound && loadSound(l.sound)); s.pickupSound && loadSound(s.pickupSound); });
+  fit();
+  if (!stack.length) { push(lockScreen()); }
+  sbIcons();
+  tick();
+  layer.classList.add("open"); layer.setAttribute("aria-hidden", "false");
 })();

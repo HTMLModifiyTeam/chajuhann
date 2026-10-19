@@ -11,23 +11,23 @@
   </head>
 
   <body>
-    <main id="story" class="story"></main>
-
     <div id="phoneLayer" class="phone-layer" aria-hidden="true">
-      <div class="backdrop" data-close></div>
       <div id="body" class="gs-body">
         <div class="gs-top"><i class="gs-speaker"></i><i class="gs-cam"></i><i class="gs-sensor"></i></div>
         <div id="screen" class="gs-screen">
           <div class="sbar" id="sbar">
             <span class="sb-left" id="sbLeft"></span>
+
             <span class="sb-right">
-              <svg class="sig" viewBox="0 0 16 12">
-                <rect x="0" y="8" width="3" height="4" />
-                <rect x="4" y="6" width="3" height="6" />
-                <rect x="8" y="3" width="3" height="9" />
-                <rect x="12" y="0" width="3" height="12" opacity=".35" />
+              <svg class="sig" id="signalBars" viewBox="0 0 20 12">
+                <rect class="signal-bar" x="0" y="8" width="3" height="4" />
+                <rect class="signal-bar" x="4" y="6" width="3" height="2" />
+                <rect class="signal-bar" x="8" y="4" width="3" height="8" />
+                <rect class="signal-bar" x="12" y="5" width="3" height="5" />
+                <rect class="signal-bar" x="16" y="4" width="3" height="2" />
               </svg>
-              <b class="net">3G</b>
+
+              <b class="net">13G</b>
               <span class="bat" id="bat"><i></i></span>
               <span id="sbTime"></span>
             </span>
@@ -47,7 +47,6 @@
             </svg></button>
         </div>
       </div>
-      <button class="close-phone" data-close aria-label="휴대폰 닫기">✕</button>
     </div>
 
     <script src="data.js"></script>
