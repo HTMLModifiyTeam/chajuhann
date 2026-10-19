@@ -592,11 +592,13 @@
   let harassOn = false, lastH = -1;
   const harassFrom = new Set();   // 협박 문자를 보낸 번호들
   /* 협박 번호에 욕(시발·씨발·좆·개새끼·지랄)을 보내면 그 욕을 받아서 되받아침 */
-  const SWEARS = ["씨발", "시발", "개새끼", "지랄", "좆"];
+  const SWEARS = ["씨발", "시발", "개새끼", "지랄", "좆", "느금마", "병신", "ㅅㅂ", "줴줴이야", "줴줴"];
+  const SOLO = ["엄"];   // 다른 말 속(엄마·엄청 등)에서는 무시하고, 따로 쓴 경우만
   const batchim = w => { const c = w.charCodeAt(w.length - 1); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 > 0; };
   function swearBack(num, text) {
     let w = null, at = Infinity;
     SWEARS.forEach(x => { const i = text.indexOf(x); if (i >= 0 && i < at) { at = i; w = x; } });
+    SOLO.forEach(x => { const m = new RegExp(`(^|[\\s.,!?~ㅋㅎ…])${x}(?=$|[\\s.,!?~ㅋㅎ…])`).exec(text); if (m && m.index < at) { at = m.index; w = x; } });
     const L = P.swearReplies || []; if (!w || !L.length) return;
     const b = batchim(w), fill = t => t.replace(/\{w\}/g, w).replace(/\{이라고\}/g, b ? "이라고" : "라고").replace(/\{이야\}/g, b ? "이야" : "야");
     let t = 1200 + Math.random() * 1500;
