@@ -43,7 +43,7 @@
     clock: { label: "시계", a: "#e9ecef", b: "#9aa1a8" },
     memo: { label: "메모", a: "#fff27c", b: "#d9b425" },
     music: { label: "음악", a: "#d991f2", b: "#7f27ad" },
-    scary: { label: "", a: "#000000", b: "#000000" }
+    scary: { label: "데이토", a: "#000000", b: "#000000" }
   };
   const badge = id => {
     if (id === "phone") { const n = P.calls.filter(c => c.dir === "missed" && !c.seen).length; return n || 0; }
@@ -524,7 +524,7 @@
       add({ me: true, text, time: nowLabel() });
       if (T._new) { delete T._new; } const i = P.messages.indexOf(T); if (i >= 0) P.messages.splice(i, 1); P.messages.unshift(T);
       if (T.blocked) return;
-      const C = (P.msgReplies || {})[T.name];   // 답장 설정. 없으면 (이미 세상을 떠난 사람 등) 아무 답도 오지 않음
+      const C = (P.msgReplies || {})[T.name]; // 답장 설정. 없으면 (이미 세상을 떠난 사람 등) 아무 답도 오지 않음
       if (!C) { if (harassFrom.has(T.name)) swearBack(T.name, text); return; }
       const k = T._ri = (T._ri ?? -1) + 1;
       if (C.block && k + 1 >= C.block) {   // 차단: 이번 메시지부터 전송 실패
@@ -751,7 +751,7 @@
     const render = () => {
       el.querySelector("[data-title]").textContent = `${view.getFullYear()}년 ${view.getMonth() + 1}월`;
       const first = view.getDay(), days = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate();
-      let html = [..."일월화수목금토"].map((w, i) => `<span class="wd ${i === 0 ? "sun" : i === 6 ? "sat" : ""}">${w}</span>`).join("");
+      let html = [..."먼좆욀홀곳홁뿱"].map((w, i) => `<span class="wd ${i === 0 ? "sun" : i === 6 ? "sat" : ""}">${w}</span>`).join("");
       for (let i = 0; i < 42; i++) {
         const d = new Date(view.getFullYear(), view.getMonth(), i - first + 1), out = d.getMonth() !== view.getMonth();
         if (i >= 35 && first + days <= 35) break;
@@ -777,10 +777,18 @@
         <br>저는 ███이에요.
         <br>저는 ??세, 여성.
         <br>최근에 당신이 도주한다면서... 최고에요.
-        <br>그렇다면 이거 보낼께요.
-        <br><input type="checkbox" id="disable_harrass" name="disable_harrass" />문자 비난 멈추기
+        <br>그러면 이 기능을 쓰세요.
+        <br><br>
+        <label for="disable_harrass">문자 비난 멈추기
+        <input type="checkbox" id="disable_harrass" name="disable_harrass" />
+        <br>
+        <button id="erase_messages" type="button">문자 기록 지우기</button>
 		  </div>
-     `);
+    `);
+
+    el.querySelector("#erase_messages").onclick = function() {
+      P.messages = [];
+    }
 
     const checkbox = el.querySelector("#disable_harrass");
     checkbox.checked = harass_disabled;
