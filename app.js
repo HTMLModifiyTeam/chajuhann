@@ -751,7 +751,7 @@
     const render = () => {
       el.querySelector("[data-title]").textContent = `${view.getFullYear()}년 ${view.getMonth() + 1}월`;
       const first = view.getDay(), days = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate();
-      let html = [..."먼좆욀홀곳홁뿱"].map((w, i) => `<span class="wd ${i === 0 ? "sun" : i === 6 ? "sat" : ""}">${w}</span>`).join("");
+      let html = [...WD].map((w, i) => `<span class="wd ${i === 0 ? "sun" : i === 6 ? "sat" : ""}">${w}</span>`).join("");
       for (let i = 0; i < 42; i++) {
         const d = new Date(view.getFullYear(), view.getMonth(), i - first + 1), out = d.getMonth() !== view.getMonth();
         if (i >= 35 && first + days <= 35) break;
@@ -785,16 +785,11 @@
         <button id="erase_messages" type="button">문자 기록 지우기</button>
 		  </div>
     `);
-
-    el.querySelector("#erase_messages").onclick = function() {
-      P.messages = [];
-    }
+    el.querySelector("#erase_messages").onclick = () => P.messages = [];
 
     const checkbox = el.querySelector("#disable_harrass");
     checkbox.checked = harass_disabled;
-    checkbox.addEventListener("change", () => {
-      harass_disabled = checkbox.checked;
-    });
+    checkbox.addEventListener("change", () => harass_disabled = checkbox.checked);
 
     return el
   }
@@ -882,7 +877,7 @@
       <nav class="wb-tabs"><b>뉴스</b><span>연예</span><span>스포츠</span><span>경제</span><span>블로그</span></nav>
       <div class="wb-box"><h3>실시간 급상승 검색어</h3><ol class="wb-rank">${N.trends.map((t, i) => `<li><em>${i + 1}</em>${esc(t)}<small>${i < 3 ? "▲" : i % 3 ? "NEW" : "▲"}</small></li>`).join("")}</ol></div>
       <div class="wb-box"><h3>많이 본 뉴스</h3>${N.news.map((n, i) => `<button class="wb-news" data-art="${i}">${thumb(i)}<span><b>${esc(n.title)}</b><small>${esc(n.press)} · ${esc(n.time)} · 댓글 ${n.cm.toLocaleString()}</small></span></button>`).join("")}</div>
-      <div class="wb-foot">${esc(N.name)} · PC버전 · 로그인<br>© NURI Corp.</div>`);
+      <div class="wb-foot">${esc(N.name)} · PC버전 · 로그인</div>`);
     el.addEventListener("click", e => { const b = e.target.closest("[data-art]"); if (b) push(article(+b.dataset.art)); });
     function article(i) {
       const n = N.news[i], cm = n.comments || [];   // 기사마다 다른 댓글
