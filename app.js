@@ -8,7 +8,7 @@
   const TODAY = P.today ? parseD(P.today) : new Date();
   const key = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-  let harass_disabled = false;  
+  let harass_disabled = false;
 
   /* ================= 시계 ================= */
   const [H0, M0, S0] = (P.time || "12:00:00").split(":").map(Number);
@@ -97,12 +97,16 @@
 
   /* ================= 상태 표시줄 ================= */
   const bat = $("#bat");
-  function setBat() { bat.querySelector("i").style.height = Math.max(P.battery > 0 ? 8 : 0, P.battery ?? 60) + "%"; bat.classList.toggle("low", (P.battery ?? 60) < 20); }
-  setBat();
+  bat.querySelector("i").style.height = Math.max(P.battery > 0 ? 8 : 0, P.battery ?? 60) + "%";
+  bat.classList.toggle("low", (P.battery ?? 60) < 20);
   function sbIcons() {
     const missed = badge("phone"), unread = badge("message");
     $("#sbLeft").innerHTML = (missed ? `<svg viewBox="0 0 20 20"><path d="M3 7l6 6 8-8" fill="none" stroke="#ff4b3e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>` : "") + (unread ? IC.sms : "");
-    document.querySelectorAll("[data-badge]").forEach(b => { const n = badge(b.dataset.badge); b.textContent = n; b.hidden = !n; });
+    document.querySelectorAll("[data-badge]").forEach(b => {
+      const n = badge(b.dataset.badge);
+      b.textContent = n;
+      b.style.display = n > 0 ? "" : "none";
+    });
   }
   function tick() {
     $("#sbTime").textContent = nowLabel();
@@ -480,8 +484,8 @@
           return;
         }
         let at = sc.firstAt || 900;
-        (sc.lines || []).forEach(l => { const txt = typeof l === "string" ? l : l.text, ms = (l && l.ms) || 2600; timers.push(setTimeout(() => { if (l && l.beep) beep(); if (l && l.sob) sob(ms); if (l && l.sound) stops.push(playSound(l.sound)); say(txt); line.classList.toggle("me", !!(l && l.me)); }, at)); at += ms; });
-        timers.push(setTimeout(() => { line.classList.remove("show"); }, at)); timers.push(setTimeout(end, at + 900));
+        (sc.lines || []).forEach(l => { const txt = typeof l === "string" ? l : l.text, ms = (l && l.ms) || 2600; timers.push(setTimeout(() => { if (l && l.beep) beep(); if (l && l.sob) sob(ms); if (l && l.sound) stops.push(playSound(l.sound)); if (l && l.color) line.style.color = l.color; say(txt); line.classList.toggle("me", !!(l && l.me)); }, at)); at += ms; });
+        timers.push(setTimeout(() => { line.style.color = "#fff"; line.classList.remove("show"); }, at)); timers.push(setTimeout(end, at + 900));
       }, sc.ringMs || 2600));
     } else {
       timers.push(setTimeout(() => { stopRing(); say("전화를 받지 않아 소리샘으로 연결됩니다."); }, 4200));
@@ -595,7 +599,7 @@
   }
   function harassLoop() {
     if (harassOn || !(P.harass || []).length) return;
-    
+
     harassOn = true;
     const next = () => setTimeout(burst, rnd(7, 14) * 1000);   // 7초~14초 간격
     function burst() {
@@ -783,9 +787,12 @@
         <input type="checkbox" id="disable_harrass" name="disable_harrass" />
         <br>
         <button id="erase_messages" type="button">문자 기록 지우기</button>
+        <br>
+        <button id="unknown_msg" type="button">알 수 없는 메세지 받기</button>
 		  </div>
     `);
     el.querySelector("#erase_messages").onclick = () => P.messages = [];
+    el.querySelector("#unknown_msg").onclick = () => deliverSMS("알 수 없음", randomUnicode(10));
 
     const checkbox = el.querySelector("#disable_harrass");
     checkbox.checked = harass_disabled;
@@ -916,17 +923,17 @@
   }
   addEventListener("resize", fit);
 
-  const wake = () => { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) { } };
+  const wake = () => { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); else if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) { } };
   addEventListener("pointerdown", wake, { capture: true }); addEventListener("keydown", wake, { capture: true });
 
   if (layer.classList.contains("open")) return;
   if (t0 === null) t0 = Date.now();
   harassLoop();
   threatLoop();
-  try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); else if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) { }
+  wake();
   Object.values(P.callScripts || {}).forEach(s => { (s.lines || []).forEach(l => l && l.sound && loadSound(l.sound)); s.pickupSound && loadSound(s.pickupSound); });
   fit();
-  if (!stack.length) { push(lockScreen()); }
+  if (!stack.length) push(lockScreen());
   sbIcons();
   tick();
   layer.classList.add("open"); layer.setAttribute("aria-hidden", "false");
