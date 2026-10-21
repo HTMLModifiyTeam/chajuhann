@@ -450,7 +450,7 @@
       timers.push(setTimeout(() => {
         stopRing();
         if (!sc.dead) {   // dead: 없는 번호 안내만 나오고 통화는 연결되지 않음
-          pickup(sc.hardPickup); if (!sc.voicemail) stops.push(lineHum());   // 음성사서함은 안내 중엔 조용, 메시지 재생부터 웅— if (sc.pickupSound) stops.push(playSound(sc.pickupSound));
+          pickup(sc.hardPickup); if (!sc.voicemail) stops.push(lineHum()); if (sc.pickupSound) stops.push(playSound(sc.pickupSound)); // 음성사서함은 안내 중엔 조용, 메시지 재생부터 웅—
           t1 = Date.now(); const draw = () => { const s = Math.floor((Date.now() - t1) / 1000); st.textContent = `통화 중  ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
           draw(); tmr = setInterval(draw, 1000);
         }
@@ -528,6 +528,13 @@
       add({ me: true, text, time: nowLabel() });
       if (T._new) { delete T._new; } const i = P.messages.indexOf(T); if (i >= 0) P.messages.splice(i, 1); P.messages.unshift(T);
       if (T.blocked) return;
+      const norm = T => T.replace(/[\s.!?~…]+/g, "");
+      const rule = ((P.autoReplies || {})[T.name] || []).find(r => r.match.some(m => norm(m) === norm(text)));
+      if (rule) {
+        let wait = 1400;
+        rule.replies.forEach(r => { setTimeout(() => deliverSMS(T.name, r), wait); wait += 1300; });
+        return;
+      }
       const C = (P.msgReplies || {})[T.name]; // 답장 설정. 없으면 (이미 세상을 떠난 사람 등) 아무 답도 오지 않음
       if (!C) { if (harassFrom.has(T.name)) swearBack(T.name, text); return; }
       const k = T._ri = (T._ri ?? -1) + 1;
