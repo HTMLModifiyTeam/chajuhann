@@ -412,6 +412,10 @@
     el.querySelector("[data-hide]").onclick = () => { pad.hidden = true; };
     el.querySelectorAll("[data-dk]").forEach(b => b.onclick = () => { const k = b.dataset.dk; dtmf(k); digits.textContent = (digits.textContent + k).slice(-14); onKey && onKey(k); });
   }
+  const paint = (el, color) => {
+    if (color) el.style.setProperty("color", color, "important");
+    else el.style.removeProperty("color");
+  };
   function placeCall(target) {
     const isVM = target === "1" || target === "음성사서함";
     const name = isVM ? "음성사서함" : nameOf(target), number = isVM ? "소리샘" : numberOf(target);
@@ -429,13 +433,16 @@
     let onKey = null; wireCall(el, k => onKey && onKey(k));
     const timers = [], st = el.querySelector("[data-state]"), line = el.querySelector("[data-line]");
     let t1 = null, tmr = null, ended = false; const stopRing = ringback(), stops = [];
-    const say = txt => {
-      if (sc && sc.stack) {   // stack: 앞 대사는 위로 밀려 올라가고 새 대사가 아래에 붙음
+    const say = (txt, color) => {
+      if (sc && sc.stack) {
         const olds = [...line.children], before = olds.map(n => n.getBoundingClientRect().top);
-        const n = document.createElement("div"); n.className = "ln"; n.textContent = txt; line.appendChild(n);
+        const n = document.createElement("div"); n.className = "ln"; n.textContent = txt; paint(n, color); line.appendChild(n);
         olds.forEach((o, i) => { const dy = before[i] - o.getBoundingClientRect().top; if (dy) o.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], { duration: 380, easing: "ease-out" }); });
         requestAnimationFrame(() => n.classList.add("in"));
-      } else line.textContent = txt;
+      } else {
+        line.textContent = txt;
+        paint(line, color);
+      }
       line.classList.add("show");
     };
     const end = () => {
@@ -468,7 +475,7 @@
             const go = () => guide(VM.label || "", 3000, () => {
               say(""); const stopSnd = VM.sound ? playSound(VM.sound) : () => { }, stopHum = lineHum();
               stopMsg = () => { stopSnd(); stopHum(); }; stops.push(stopMsg);
-              (VM.lines || []).forEach(l => timers.push(setTimeout(() => { if (stage === 1) { say(l.text); line.classList.toggle("me", !!l.me); } }, l.at)));
+              (VM.lines || []).forEach(l => timers.push(setTimeout(() => { if (stage === 1) { say(l.text, l.color); line.classList.toggle("me", !!l.me); } }, l.at)));
               timers.push(setTimeout(() => { stage = 3; if (stopMsg) stopMsg(); line.classList.remove("me"); say(multi ? "메시지가 끝났습니다. 다른 메시지를 들으시려면 번호를, 종료하시려면 통화 종료를 눌러 주세요." : "메시지가 끝났습니다. 다시 들으시려면 1번, 종료하시려면 통화 종료를 눌러 주세요."); }, (VM.ms || 19000) + 400));
             });
             intro ? guide(intro, 2200, go) : go();
@@ -484,7 +491,7 @@
           return;
         }
         let at = sc.firstAt || 900;
-        (sc.lines || []).forEach(l => { const txt = typeof l === "string" ? l : l.text, ms = (l && l.ms) || 2600; timers.push(setTimeout(() => { if (l && l.beep) beep(); if (l && l.sob) sob(ms); if (l && l.sound) stops.push(playSound(l.sound)); if (l && l.color) line.style.color = l.color; say(txt); line.classList.toggle("me", !!(l && l.me)); }, at)); at += ms; });
+        (sc.lines || []).forEach(l => { const txt = typeof l === "string" ? l : l.text, ms = (l && l.ms) || 2600; timers.push(setTimeout(() => { if (l && l.beep) beep(); if (l && l.sob) sob(ms); if (l && l.sound) stops.push(playSound(l.sound)); say(txt, l && l.color); line.classList.toggle("me", !!(l && l.me)); }, at)); at += ms; });
         timers.push(setTimeout(() => { line.style.color = "#fff"; line.classList.remove("show"); }, at)); timers.push(setTimeout(end, at + 900));
       }, sc.ringMs || 2600));
     } else {
@@ -700,7 +707,7 @@
       t1 = Date.now(); const draw = () => { const s = Math.floor((Date.now() - t1) / 1000); st.textContent = `통화 중  ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
       draw(); tmr = setInterval(draw, 1000);
       let at = CALL.firstAt || 1200;
-      CALL.lines.forEach(l => { timers.push(setTimeout(() => { line.textContent = l.text; line.classList.toggle("me", !!l.me); line.classList.add("show"); }, at)); at += l.ms || Math.max(2200, l.text.length * 120); });
+      CALL.lines.forEach((l) => { timers.push(setTimeout(() => { line.textContent = l.text; paint(line, l.color); line.classList.toggle("me", !!l.me); line.classList.add("show"); }, at)); at += l.ms || Math.max(2200, l.text.length * 120); });
       timers.push(setTimeout(() => close("통화 종료", true), at)); // 마지막 말에서 뚝 끊김
     };
     timers.push(setTimeout(() => { if (!t1) close("부재중 전화"); }, 30000));
