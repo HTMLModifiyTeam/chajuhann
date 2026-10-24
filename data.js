@@ -1,5 +1,5 @@
 function getRandomNumber(min, max) {
-  return min + Math.floor(Math.random() * (max - min) + min)
+  return min + Math.floor(Math.random() * (max - min));
 }
 
 function randomUnicode(length) {
