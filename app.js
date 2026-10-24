@@ -8,7 +8,18 @@
   const TODAY = P.today ? parseD(P.today) : new Date();
   const key = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-  let harass_disabled = false;
+  var net = document.getElementsByClassName("net")[0];
+  net.textContent = getRandomNumber(0, 100) + "G";
+
+  const signalBars = document.querySelectorAll("#signalBars .signal-bar");
+
+  signalBars.forEach(bar => {
+    const height = getRandomNumber(1, 15);
+    bar.setAttribute("y", 2 + getRandomNumber(0, 12) - height);
+    bar.setAttribute("height", height);
+  });
+
+  let stop_sms = false;
 
   /* ================= 시계 ================= */
   const [H0, M0, S0] = (P.time || "12:00:00").split(":").map(Number);
@@ -67,7 +78,6 @@
     keypad: `<svg viewBox="0 0 24 24" fill="currentColor">${[5, 12, 19].flatMap(y => [5, 12, 19].map(x => `<circle cx="${x}" cy="${y}" r="2.1"/>`)).join("")}</svg>`,
     log: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round"/></svg>`,
     person: `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8.5" r="4"/><path d="M4 21c.6-4.5 3.8-7 8-7s7.4 2.5 8 7z"/></svg>`,
-    star: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>`,
     alarm: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4h3M4 6l3-2.5M20 6l-3-2.5" stroke-linecap="round"/></svg>`,
     globe: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg>`,
     watch: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 13V8M10 2h4" stroke-linecap="round"/></svg>`,
@@ -178,7 +188,7 @@
 
   /* ================= 홈 ================= */
   function homeScreen() {
-    const page = `<div class="wg wg-clock"><div><div class="t" data-now></div><div class="d">${dateLabel(TODAY)}</div></div><div class="w">모리오초<b>9999°</b>매우맑음</div></div>${["internet", "calendar", "memo", "clock", "gallery", "music"].map(id => appBtn(id)).join("")}`;
+    const page = `<div class="wg wg-clock"><div><div class="t" data-now></div><div class="d">${dateLabel(TODAY)}</div></div><div class="w">모리오초<b>${getRandomNumber(-9999, 9999)}°</b>매우맑음</div></div>${["internet", "calendar", "memo", "clock", "gallery", "music"].map(id => appBtn(id)).join("")}`;
     const el = h(`<section class="scr home">${wallHTML()}
       <div class="hm-dots"></div>
       <div class="hm-pages"><div class="hm-track"><div class="hm-page">${page}</div></div></div>
@@ -245,7 +255,7 @@
   }
   function phoneApp(tab) {
     const el = h(`<section class="scr">
-      <nav class="tabs"><button data-tab="keypad">${IC.keypad}키패드</button><button data-tab="log">${IC.log}통화기록</button><button data-tab="contacts">${IC.person}연락처</button><button data-tab="fav">${IC.star}즐겨찾기</button></nav>
+      <nav class="tabs"><button data-tab="keypad">${IC.keypad}키패드</button><button data-tab="log">${IC.log}통화기록</button><button data-tab="contacts">${IC.person}연락처</button></nav>
       <div class="dial" data-body></div></section>`);
     const bodyEl = el.querySelector("[data-body]");
     let num = "";
@@ -272,7 +282,7 @@
       } else if (t === "contacts") {
         bodyEl.innerHTML = `<div class="scroll list">${contactRows()}</div>`;
         bodyEl.onclick = e => { const r = e.target.closest("[data-contact]"); if (r) push(contactDetail(r.dataset.contact)); };
-      } else { bodyEl.innerHTML = `<div class="empty">즐겨찾기가 없습니다.</div>`; bodyEl.onclick = null; }
+      }
       if (t === "keypad") bodyEl.onclick = null;
       el._tab = t;
     };
@@ -543,7 +553,6 @@
         return;
       }
       const C = (P.msgReplies || {})[T.name]; // 답장 설정. 없으면 (이미 세상을 떠난 사람 등) 아무 답도 오지 않음
-      if (!C) { if (harassFrom.has(T.name)) swearBack(T.name, text); return; }
       const k = T._ri = (T._ri ?? -1) + 1;
       if (C.block && k + 1 >= C.block) {   // 차단: 이번 메시지부터 전송 실패
         T.blocked = true; lockCompose();
@@ -589,40 +598,25 @@
     sbIcons();
     if (layer.classList.contains("open")) { smsTone(); if (!(top && top._thread === T) && !(top && top.classList.contains("callscr"))) ticker(name, text); }
   }
-  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
   function randomNumber() {
     let n;
-    do { n = Math.random() < .8 ? `010-${rnd(2000, 9999)}-${rnd(1000, 9999)}` : `0${["11", "16", "17", "19"][rnd(0, 3)]}-${rnd(200, 999)}-${rnd(1000, 9999)}`; }
+    do { n = Math.random() < .8 ? `010-${getRandomNumber(2000, 9999)}-${getRandomNumber(1000, 9999)}` : `0${["11", "16", "17", "19"][getRandomNumber(0, 3)]}-${getRandomNumber(200, 999)}-${getRandomNumber(1000, 9999)}`; }
     while (contactBy(n) || P.messages.some(t => t.name === n));
     return n;
   }
-  let harassOn = false, lastH = -1;
-  const harassFrom = new Set();   // 협박 문자를 보낸 번호들
-  /* 협박 번호에 욕(시발·씨발·좆·개새끼·지랄)을 보내면 그 욕을 받아서 되받아침 */
-  const SWEARS = ["씨발", "시발", "개새끼", "지랄", "좆", "느금마", "병신", "ㅅㅂ", "줴줴이야", "줴줴"];
-  const SOLO = ["엄"];   // 다른 말 속(엄마·엄청 등)에서는 무시하고, 따로 쓴 경우만
-  const batchim = w => { const c = w.charCodeAt(w.length - 1); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 > 0; };
-  function swearBack(num, text) {
-    let w = null, at = Infinity;
-    SWEARS.forEach(x => { const i = text.indexOf(x); if (i >= 0 && i < at) { at = i; w = x; } });
-    SOLO.forEach(x => { const m = new RegExp(`(^|[\\s.,!?~ㅋㅎ…])${x}(?=$|[\\s.,!?~ㅋㅎ…])`).exec(text); if (m && m.index < at) { at = m.index; w = x; } });
-    const L = P.swearReplies || []; if (!w || !L.length) return;
-    const b = batchim(w), fill = t => t.replace(/\{w\}/g, w).replace(/\{이라고\}/g, b ? "이라고" : "라고").replace(/\{이야\}/g, b ? "이야" : "야");
-    let t = 1200 + Math.random() * 1500;
-    [].concat(L[rnd(0, L.length - 1)]).forEach(r => { const msg = fill(r); setTimeout(() => deliverSMS(num, msg), t); t += smsGap(msg); });
-  }
-  function harassLoop() {
-    if (harassOn || !(P.harass || []).length) return;
+  let stupidOn = false, lastH = -1;
+  function stupidLoop() {
+    if (stupidOn || !(P.stupid || []).length) return;
 
-    harassOn = true;
-    const next = () => setTimeout(burst, rnd(7, 14) * 1000);   // 7초~14초 간격
+    stupidOn = true;
+    const next = () => setTimeout(burst, getRandomNumber(7, 14) * 1000);   // 7초~14초 간격
     function burst() {
-      const n = rnd(1, 3), num = randomNumber(); let at = 0;   // 한 번에 한 명이 1~3개
+      const n = getRandomNumber(1, 3), num = randomNumber(); let at = 0;   // 한 번에 한 명이 1~3개
       for (let i = 0; i < n; i++) {
-        if (harass_disabled) continue;
-        let k; do { k = rnd(0, P.harass.length - 1); } while (k === lastH && P.harass.length > 1); lastH = k;
-        const who = num, txt = P.harass[k]; harassFrom.add(num);
-        setTimeout(() => deliverSMS(who, txt), at); at += smsGap(txt);
+        if (stop_sms) continue;
+        let k; do { k = getRandomNumber(0, P.stupid.length - 1); } while (k === lastH && P.stupid.length > 1); lastH = k;
+        const txt = P.stupid[k];
+        setTimeout(() => deliverSMS(num, txt), at); at += smsGap(txt);
       }
       next();
     }
@@ -646,8 +640,8 @@
     return () => { if (done) return; done = true; clearInterval(iv); try { navigator.vibrate && navigator.vibrate(0); } catch (e) { } };
   }
   function incomingThreat() {
-    const L = P.threatCalls || []; if (!L.length) return;
-    let k; do { k = rnd(0, L.length - 1); } while (k === lastC && L.length > 1); lastC = k;
+    const L = P.rngCalls || []; if (!L.length) return;
+    let k; do { k = getRandomNumber(0, L.length - 1); } while (k === lastC && L.length > 1); lastC = k;
     const lines = L[k], number = randomNumber();
     inCall = true;
     const el = h(callShell(number, "저장되지 않은 번호", true));
@@ -718,7 +712,7 @@
   function threatLoop() {
     if (threatOn) return;
     threatOn = true;
-    const next = () => setTimeout(() => { if (!inCall && layer.classList.contains("open") && !harass_disabled) incomingThreat(); next(); }, rnd(30, 120) * 1000);   // 30초~2분 간격
+    const next = () => setTimeout(() => { if (!inCall && layer.classList.contains("open") && !stop_sms) incomingThreat(); next(); }, getRandomNumber(30, 120) * 1000);   // 30초~2분 간격
     next();
   }
 
@@ -791,14 +785,13 @@
     const el = h(`
 		  <div class="scary-app">
         데이토
-        <br><br>안녕?
+        <br><br>안녕하세요.
         <br>저는 ███이에요.
         <br>저는 ??세, 여성.
-        <br>최근에 당신이 도주한다면서... 최고에요.
-        <br>그러면 이 기능을 쓰세요.
+        <br>내 기능들을 사용해 보세요.
         <br><br>
-        <label for="disable_harrass">문자 비난 멈추기
-        <input type="checkbox" id="disable_harrass" name="disable_harrass" />
+        <label for="stop_sms">문자 받지 못하기
+        <input type="checkbox" id="stop_sms" name="stop_sms" />
         <br>
         <button id="erase_messages" type="button">문자 기록 지우기</button>
         <br>
@@ -808,9 +801,9 @@
     el.querySelector("#erase_messages").onclick = () => P.messages = [];
     el.querySelector("#unknown_msg").onclick = () => deliverSMS("알 수 없음", randomUnicode(10));
 
-    const checkbox = el.querySelector("#disable_harrass");
-    checkbox.checked = harass_disabled;
-    checkbox.addEventListener("change", () => harass_disabled = checkbox.checked);
+    const checkbox = el.querySelector("#stop_sms");
+    checkbox.checked = stop_sms;
+    checkbox.addEventListener("change", () => stop_sms = checkbox.checked);
 
     return el
   }
@@ -926,7 +919,6 @@
     if (locked) return;
     if (k === "back") pop();
     else if (k === "home") popToRoot();
-    else if (k === "menu") toast("메뉴");
   }));
 
   /* ================= 열기 / 닫기 ================= */
@@ -942,7 +934,7 @@
 
   if (layer.classList.contains("open")) return;
   if (t0 === null) t0 = Date.now();
-  harassLoop();
+  stupidLoop();
   threatLoop();
   wake();
   Object.values(P.callScripts || {}).forEach(s => { (s.lines || []).forEach(l => l && l.sound && loadSound(l.sound)); s.pickupSound && loadSound(s.pickupSound); });
