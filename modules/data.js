@@ -1,16 +1,4 @@
-function getRandomNumber(min, max) {
-  return min + Math.floor(Math.random() * (max - min));
-}
-
-function randomUnicode(length) {
-  let result = "";
-  while (result.length < length) {
-    const code = Math.floor(Math.random() * 0x10000); // U+0000 - U+FFFF
-    if (code >= 0xD800 && code <= 0xDFFF) continue;
-    result += String.fromCharCode(code);
-  }
-  return result;
-}
+import { getRandomNumber, randomUnicode } from "./utils.js"
 
 function generateMessages(count = 21) {
   const msgs = [];
@@ -26,11 +14,11 @@ function generateMessages(count = 21) {
   return msgs;
 }
 
-var cursed_call = randomUnicode(10);
+const cursed_call = randomUnicode(10);
 const rngDate = new Date(Math.random() * Date.now());
 const rngToday = rngDate.toISOString().split('T')[0];
 const rngTime = rngDate.toTimeString().slice(0, 8); // "HH:MM:SS" in local time
-window.PHONE = {
+export const data = {
   owner: "차주한",
   today: rngToday,          // 휴대폰 속 날짜 (YYYY-MM-DD)
   time: rngTime,            // 휴대폰을 처음 연 순간의 시각. 이후 실제 시간만큼 흘러감
@@ -322,6 +310,7 @@ window.PHONE = {
         { date: "2018년 3월 7일 수요일" },
         { text: "검사님", time: "오후 11:30" },
         { text: "검 . . . 사 님.. . ... . .", time: "오후 11:31" },
+        { text: "ㅅ ㅏ ㄹ ㅕ  ㅈ ㅜ ㅓ", time: "오후 11:41" },
       ]
     },
     {
@@ -449,8 +438,8 @@ window.PHONE = {
         { text: "검사님, 저 그 건 못 받아요", time: "오후 5:30" },
         { text: "검사님 이름 걸고 하시는 거 압니다. 그래도 언론을 개인 무기처럼 쓰시면 안 됩니다", time: "오후 5:31" },
         { date: "2018년 3월 7일 수요일" },
-        { text: "죄송해요, 차장님 저 그 건 못 받 아 요 ㅋㅋ ㅋ ㅋ", time: "오후 5:30" },
-        { text: "위에서 자른다고? 위아래로 자 르 고", time: "오후 5:31" },
+        { text: "죄송해요, 차장님 저 그건 못 받아요 ㅋㅋ ㅋ ㅋ", time: "오후 5:30" },
+        { text: "위에서 자른다고? 위아래로 자르고", time: "오후 5:31" },
         { text: "왼쪽 오른쪽도 자르면 되잖아욬ㅋㅋㅋ", time: "오후 5:32" },
         { date: "2018년 3월 9일 금요일" },
         { text: "ㄱㅈ흐ㅡ히날ㄴㅇㄹ", time: "오전 1:47" },
@@ -637,12 +626,14 @@ window.PHONE = {
     {
       name: "제보자", msgs: [
         { date: "2018년 2월 20일 화요일" },
-        { file: "WS_회장실_특별관리_대외비.pdf", size: "3.1MB", time: "오전 3:14" },
-        { audio: "녹음_0217_2341.amr", size: "412KB", time: "오전 3:14" },
+        { file: "WS_회장실_특별관리_대외비.pdf", size: "3.1MB", fileType: "pdf", time: "오전 3:14" },
+        { file: "녹음_0217_2341.amr", size: "412KB", fileType: "audio", time: "오전 3:14" },
         { text: "전부 진짜 자료니까 사용하시려면 하세요.", time: "오전 3:16" },
         { date: "2018년 2월 25일 일요일" },
-        { file: "PHONE.sys", size: "1.6TB", time: "오후 2:22" },
+        { file: "PHONE.sys", size: "1.6TB", fileType: "pdf", time: "오후 2:22" },
+        { text: "이거!!! 바이러스입니다!!!" },
         { text: "죄송합니다!!!!!!!!!!!" },
+        { file: ".amr", size: "0bytes", fileType: "audio", time: "오후 2:23" },
       ]
     },
     {
@@ -899,17 +890,18 @@ window.PHONE = {
     ["아...", "전화 잘못 거셨네요.", "죄송합니다!"]
   ],
 
-  /* 문자로 받은 첨부 파일 (파일 이름 → 내용). audio: 녹음 파일(대화가 차례로 나옴) */
+  /* 문자로 받은 첨부 파일 (파일 이름 → 내용). */
   files: {
     "PHONE.sys": {
+      "fileType": "pdf",
       "blocks": [
         { "stamp": "system" },
-        { "small": "휴대폰 시스템" },
-        { "small": "휴대폰 데이터: 지움" },
+        { "h": "휴대폰 시스템\n휴대폰 데이터: 지움" },
         { "small": randomUnicode(100) },
       ]
     },
     "WS_회장실_특별관리_대외비.pdf": {
+      "fileType": "pdf",
       "blocks": [
         { "stamp": "대외비" },
         { "small": "우신그룹 회장실 · 특별관리 문서 · 열람 제한 (회장실 비서실장 이상)" },
@@ -945,7 +937,7 @@ window.PHONE = {
       ]
     },
     "녹음_0217_2341.amr": {
-      "audio": true,
+      "fileType": "audio",
       "length": "1:12",
       "lines": [
         {
@@ -979,6 +971,16 @@ window.PHONE = {
       ]
     }
   },
+  ".amr": {
+    "fileType": "audio",
+    "length": "0:01",
+    "lines": [
+      {
+        "who": "",
+        "text": ""
+      },
+    ]
+  },
 
   /* 음성사서함(소리샘, 키패드 1번 길게): 들어 있는 메시지 순서 (각 번호의 callScripts.voicemail) */
   voicemailBox: ["조아영", "어머니", " ", "국회-서민철 보좌관"],
@@ -1011,7 +1013,7 @@ window.PHONE = {
     { date: "2021-12-25", time: "66:66", title: "산타클로스가 차주한에게 압수수색 영장 발부" },
     { date: "2022-05-02", time: "", title: "전쟁" },
     { date: "2022-05-03", time: "00:01", title: "전쟁 중 갑자기 전 세계 인터넷이 랏코 사진으로 교체됨" },
-    { date: rngToday, time: "", title: "먼작귀 시즌" + getRandomNumber(1, 10) + " 보기"}
+    { date: rngToday, time: "", title: "먼작귀 시즌" + getRandomNumber(1, 10) + " 보기" }
   ],
 
   /* 알람 */
@@ -1033,7 +1035,7 @@ window.PHONE = {
   msgReplies: {
     /* ── 기다리는 사람들 ── */
     "시보-강민재": {
-      replies: [["검사님.", "왜 지금 나한테 욕을 합니까?", "지금 이씨발 화나서 그래요?", "통화해 검사.", "통화 안 하면 내 핸드폰 던져 버릴 거야 이씨."]],
+      replies: [["검사님.", "왜 지금 나한테 욕을 합니까?", "지금 이씨발 화나서 그래요?", "통화합시다 검사님.", "통화 안 하면 내 핸드폰 던져 버릴 거야 이씨."]],
       loop: ["너 누구냐고 씨발", "누구냐?", "너 새끼 도둑 아니냐?"],
       call: {
         after: 6000, firstAt: 1600, lines: [
@@ -1178,7 +1180,7 @@ window.PHONE = {
       {
         "press": "한빛일보",
         "time": "14분 전",
-        "title": "[단독] 청문회 한 달째 썩은 냄새나고 곰팡이 펴...",
+        "title": "[단독] 청문회 시작 한 달, 고약한 악취가 풍기고 곰팡이까지 피어나…",
         "body": [
           "지난달 3일 열린 국회 청문회장에서는 불쾌하고 퀴퀴한 곰팡이 냄새가 났다. 그런 상태가 거의 한 달째 이어지고 있다.",
           "검찰 안팎에서는 '어우 냄새 이쒸!'라는 식의 해석이 나왔지만, 별다른 설득력을 얻지 못했다.",
@@ -1219,8 +1221,8 @@ window.PHONE = {
           "씨발, 도대체 일을 어떻게 처하는 겁니까? 피해자 진술이 43건이나 있는데 제대로 하는 게 뭐 하나 있습니까? 언론까지 끌어들여 개인 싸움이나 벌이려 했다니, 진짜 개판도 이런 개판이 없습니다!",
           "기자에게까지 피해가 발생하고 사과문까지 오가는 상황이라니, 이 좆같은 상황을 대체 누가 책임질 겁니까? 국민이 우습습니까? 검찰이 지들 멋대로 해도 되는 곳인 줄 아십니까? 이 빌어먹을 엉터리 수사에 시민들의 분노가 폭발하고 있습니다!",
           "책임질 사람은 당장 책임지십시오! 씨발, 변명과 핑계로 얼렁뚱땅 넘어갈 생각은 꿈도 꾸지 마십시오. 국민을 개좆으로 보지 마십시오! 제대로 된 해명과 철저한 진상 규명 없이는 이 개판 난 상황을 절대 그냥 넘어갈 수 없습니다!",
-          "이제 욕도 하니까 즐겁나요? 좆좆좆 좆좆 좆좆",
-          "댓글도 달지마세요! 너 개쌔꺄 어디서 댓글을 달래! 달아보면 죽는다!"
+          "이제 욕도 하니까 즐겁나요? 좆 좆 좆 좆 좆 좆 좆",
+          "댓글도 달지마! 너 개쌔꺄 어디서 댓글을 달래! 달아보면 죽는다!"
         ], "comments": [], "cm": 0
       },
       {
@@ -1267,7 +1269,7 @@ window.PHONE = {
         "time": "???",
         "title": "",
         "body": [""],
-        ["comments"]: ["unicode와 ??? 통화 조심해.", "공백도.", "저도 문자나 전화한 후에 저주도 걸렸어요...", "뒤에 돌아보지마.", randomUnicode(10), "달력에 12월 31일에 정하지 마세요!!!"],
+        "comments": ["unicode와 ??? 통화 조심해.", "공백도.", "저도 문자나 전화한 후에 저주도 걸렸어요...", "뒤에 돌아보지마.", randomUnicode(10), "달력에 12월 31일에 정하지 마세요!!!"],
         "cm": 6
       },
       {
@@ -1280,14 +1282,12 @@ window.PHONE = {
           "제목이 보는 데마다 다름.",
           "도대체 뭐여 이거..."
         ],
-        ["comments"]: ["어 이거 나도 친구가 알려줘서 봤었음"],
-        "cm": 5
+        "comments": ["어 이거 나도 친구가 알려줘서 봤었음"], "cm": 5
       }
     ]
   }
 };
-
-window.PHONE.callScripts[" "] = {
+data.callScripts[" "] = {
   ringMs: 1000, voicemail: {
     label: "[알 수 없음] 에 받은 메시지입니다.", ms: 2400, lines: [
       ...Array.from({ length: 1499 }, (_, at) => ({ at, text: randomUnicode(99) })),
@@ -1296,4 +1296,4 @@ window.PHONE.callScripts[" "] = {
     ]
   }
 }
-window.PHONE.callScripts[cursed_call] = { ringMs: 500, lines: [randomUnicode(999), "SYS_CALL_ERROR: FATAL_ERROR_CALL"] }
+data.callScripts[cursed_call] = { ringMs: 500, lines: [randomUnicode(999), "SYS_CALL_ERROR: FATAL_ERROR_CALL"] }

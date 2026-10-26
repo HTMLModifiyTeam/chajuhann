@@ -1,5 +1,11 @@
+import { createOrganizerApps } from "./modules/organizer-apps.js";
+import { createMusicApp } from "./modules/music-app.js";
+import { createMediaApps } from "./modules/media-apps.js";
+import { getRandomNumber, randomUnicode } from "./modules/utils.js"
+import { data } from "./modules/data.js"
+
 (() => {
-  const P = window.PHONE;
+  const P = data;
   const $ = s => document.querySelector(s);
   const h = html => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
   const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -12,7 +18,6 @@
   net.textContent = getRandomNumber(0, 100) + "G";
 
   const signalBars = document.querySelectorAll("#signalBars .signal-bar");
-
   signalBars.forEach(bar => {
     const height = getRandomNumber(1, 15);
     bar.setAttribute("y", 2 + getRandomNumber(0, 12) - height);
@@ -527,7 +532,27 @@
   }
   function convScreen(T) {
     T.unread = 0; sbIcons();
-    const bubble = m => m.date ? `<div class="date"><span>${esc(m.date)}</span></div>` : `<div class="bub${m.me ? " me" : ""}">${m.file || m.audio ? `<button class="b fileb${m.audio ? " aud" : ""}" data-file="${esc(m.file || m.audio)}"><i>${m.audio ? "♪" : "PDF"}</i><span><b>${esc(m.file || m.audio)}</b><small>${esc(m.size || "")}</small></span></button>` : `<div class="b">${esc(m.text)}</div>`}<small>${esc(m.time || "")}</small></div>`;
+
+    const bubble = m => {
+      const fileType = m.fileType;
+      const isDate = !!m.date;
+      const isFile = !!m.file || ["audio", "pdf", "txt"].includes(fileType);
+
+      if (isDate) return `<div class="date"><span>${esc(m.date)}</span></div>`;
+
+      const content = isFile
+        ? `<button class="b fileb${fileType === "audio" ? " aud" : ""}"
+              data-file="${esc(m.file || "")}"
+              data-type="${esc(fileType || "pdf")}">
+              <i>${fileType === "audio" ? "♪" : fileType === "txt" ? "TXT" : "PDF"}</i>
+              <span><b>${esc(m.file || m.audio || "파일")}</b><small>${esc(m.size || "")}</small></span>
+            </button>`
+        : `<div class="b">${esc(m.text || "")}</div>`;
+
+      return `<div class="bub${m.me ? " me" : ""}">${content}<small>${esc(m.time || "")}</small>
+    </div>`;
+    };
+
     const el = h(`<section class="scr"><div class="tbar">${esc(nameOf(T.name))}<small>${esc(numberOf(T.name) === T.name ? "" : numberOf(T.name))}</small></div>
       <div class="scroll conv" data-conv>${T.msgs.map(bubble).join("")}</div>
       <form class="compose"><input placeholder="메시지 입력" enterkeyhint="send" autocomplete="off"><button>전송</button></form></section>`);
@@ -639,7 +664,7 @@
     play(); iv = setInterval(play, 2200);
     return () => { if (done) return; done = true; clearInterval(iv); try { navigator.vibrate && navigator.vibrate(0); } catch (e) { } };
   }
-  function incomingThreat() {
+  function incomingStupid() {
     const L = P.rngCalls || []; if (!L.length) return;
     let k; do { k = getRandomNumber(0, L.length - 1); } while (k === lastC && L.length > 1); lastC = k;
     const lines = L[k], number = randomNumber();
@@ -708,11 +733,11 @@
     push(el);
   }
 
-  let threatOn = false;
-  function threatLoop() {
-    if (threatOn) return;
-    threatOn = true;
-    const next = () => setTimeout(() => { if (!inCall && layer.classList.contains("open") && !stop_sms) incomingThreat(); next(); }, getRandomNumber(30, 120) * 1000);   // 30초~2분 간격
+  let stupidCallOn = false;
+  function stupidCallLoop() {
+    if (stupidCallOn) return;
+    stupidCallOn = true;
+    const next = () => setTimeout(() => { if (!inCall && layer.classList.contains("open") && !stop_sms) incomingStupid(); next(); }, getRandomNumber(30, 120) * 1000);   // 30초~2분 간격
     next();
   }
 
@@ -735,181 +760,40 @@
     return el;
   }
   function fileViewer(name) {
-    if (((P.files || {})[name] || {}).audio) return recPlayer(name, P.files[name]);
-    const F = (P.files || {})[name] || { blocks: [{ p: "파일을 열 수 없습니다." }] };
-    const B = b => b.stamp ? `<div class="dv-stamp">${esc(b.stamp)}</div>` : b.small ? `<p class="dv-small">${esc(b.small)}</p>` : b.h ? `<h1>${esc(b.h).replace(/\n/g, "<br>")}</h1>` : b.h2 ? `<h2>${esc(b.h2)}</h2>`
-      : b.quote ? `<blockquote>${esc(b.quote)}</blockquote>` : b.table ? `<table>${b.table.map((r, i) => `<tr>${r.map(c => i ? `<td>${esc(c)}</td>` : `<th>${esc(c)}</th>`).join("")}</tr>`).join("")}</table>` : `<p>${esc(b.p || "")}</p>`;
-    const el = h(`<section class="scr"><div class="tbar" style="font-size:14px">${esc(name)}</div><div class="scroll dv"><div class="dv-page">${F.blocks.map(B).join("")}</div></div></section>`);
-    return el;
-  }
+    const files = P.files || {};
+    const F = files[name] || { blocks: [{ p: "파일을 열 수 없습니다." }] };
+    switch (F.fileType) {
+      case "audio": return recPlayer(name, F);
 
-  /* ================= 메모 ================= */
-  function memoApp() {
-    const el = h(`<section class="scr"><div class="tbar">메모<small>${(P.memos || []).length}개</small></div>
-      <div class="scroll"><div class="memo-grid">${(P.memos || []).map((m, i) => `<button class="memo" data-memo="${i}"><small>${esc(m.date)}</small>${esc(m.text)}</button>`).join("")}</div></div></section>`);
-    el.addEventListener("click", e => {
-      const b = e.target.closest("[data-memo]"); if (!b) return; const m = P.memos[+b.dataset.memo];
-      push(h(`<section class="scr"><div class="tbar">메모<small>${esc(m.date)}</small></div><div class="memo-full">${esc(m.text)}</div></section>`));
-    });
-    return el;
-  }
+      case "pdf":
+        const B = b => b.stamp ? `<div class="dv-stamp">${esc(b.stamp)}</div>` : b.small ? `<p class="dv-small">${esc(b.small)}</p>` : b.h ? `<h1>${esc(b.h).replace(/\n/g, "<br>")}</h1>` : b.h2 ? `<h2>${esc(b.h2)}</h2>` : b.quote ? `<blockquote>${esc(b.quote)}</blockquote>` : b.table ? `<table>${b.table.map((r, i) => `<tr>${r.map(c => i ? `<td>${esc(c)}</td>` : `<th>${esc(c)}</th>`).join("")}</tr>`).join("")}</table>` : `<p>${esc(b.p || "")}</p>`;
+        return h(`
+          <section class="scr">
+            <div class="tbar" style="font-size:14px">${esc(name)}</div>
+            <div class="scroll dv">
+              <div class="dv-page">${(F.blocks || []).map(B).join("")}</div>
+            </div>
+          </section>
+        `);
 
-  /* ================= 캘린더 ================= */
-  function calendarApp() {
-    let view = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1), sel = new Date(TODAY);
-    const el = h(`<section class="scr"><div class="cal-head"><button data-prev>◀</button><span data-title></span><button data-next>▶</button></div>
-      <div class="cal-grid" data-grid></div><div class="scroll list" data-day></div></section>`);
-    const evs = d => (P.events || []).filter(e => e.date === key(d));
-    const render = () => {
-      el.querySelector("[data-title]").textContent = `${view.getFullYear()}년 ${view.getMonth() + 1}월`;
-      const first = view.getDay(), days = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate();
-      let html = [...WD].map((w, i) => `<span class="wd ${i === 0 ? "sun" : i === 6 ? "sat" : ""}">${w}</span>`).join("");
-      for (let i = 0; i < 42; i++) {
-        const d = new Date(view.getFullYear(), view.getMonth(), i - first + 1), out = d.getMonth() !== view.getMonth();
-        if (i >= 35 && first + days <= 35) break;
-        html += `<span data-d="${key(d)}" class="${out ? "out" : ""} ${d.getDay() === 0 ? "sun" : d.getDay() === 6 ? "sat" : ""} ${key(d) === key(TODAY) ? "today" : ""} ${evs(d).length ? "ev" : ""} ${key(d) === key(sel) ? "sel" : ""}">${d.getDate()}</span>`;
-      }
-      el.querySelector("[data-grid]").innerHTML = html;
-      const list = evs(sel);
-      el.querySelector("[data-day]").innerHTML = `<div class="sec">${sel.getMonth() + 1}월 ${sel.getDate()}일 ${WD[sel.getDay()]}요일</div>` + (list.map(e => `<div class="row"><span class="tx"><b>${esc(e.title)}</b><small>${esc(e.time || "종일")}</small></span></div>`).join("") || `<div class="empty">일정이 없습니다.</div>`);
-    };
-    el.querySelector("[data-prev]").onclick = () => { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); render(); };
-    el.querySelector("[data-next]").onclick = () => { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); render(); };
-    el.querySelector("[data-grid]").onclick = e => { const s = e.target.closest("[data-d]"); if (s) { sel = parseD(s.dataset.d); render(); } };
-    render();
-    return el;
-  }
+      case "txt":
+        return h(`<section class="scr">
+          <div class="tbar">${esc(name)}</div>
+            <div class="scroll dv">
+              <p>${(F.texts || []).join("")}</p>
+            </div>
+          </section>
+        `);
 
-  /* ================= ? ================= */
-  function scaryApp() {
-    const el = h(`
-		  <div class="scary-app">
-        데이토
-        <br><br>안녕하세요.
-        <br>저는 ███이에요.
-        <br>저는 ??세, 여성.
-        <br>내 기능들을 사용해 보세요.
-        <br><br>
-        <label for="stop_sms">문자 받지 못하기
-        <input type="checkbox" id="stop_sms" name="stop_sms" />
-        <br>
-        <button id="erase_messages" type="button">문자 기록 지우기</button>
-        <br>
-        <button id="unknown_msg" type="button">알 수 없는 메세지 받기</button>
-		  </div>
-    `);
-    el.querySelector("#erase_messages").onclick = () => P.messages = [];
-    el.querySelector("#unknown_msg").onclick = () => deliverSMS("알 수 없음", randomUnicode(10));
-
-    const checkbox = el.querySelector("#stop_sms");
-    checkbox.checked = stop_sms;
-    checkbox.addEventListener("change", () => stop_sms = checkbox.checked);
-
-    return el
-  }
-
-  /* ================= 시계 ================= */
-  function clockApp() {
-    const el = h(`<section class="scr"><nav class="tabs"><button class="on">${IC.alarm}알람</button><button data-x>${IC.globe}세계 시각</button><button data-x>${IC.watch}스톱워치</button><button data-x>${IC.timer}타이머</button></nav>
-      <div class="scroll list">${(P.alarms || []).map((a, i) => `<div class="row"><span class="tx"><b style="font-size:22px;font-weight:300">${esc(a.time)}</b><small>${esc(a.label)} · ${esc(a.repeat || "")}</small></span><button class="tog${a.on ? " on" : ""}" data-al="${i}"></button></div>`).join("") || `<div class="empty">알람이 없습니다.</div>`}</div></section>`);
-    el.querySelectorAll("[data-al]").forEach(b => b.onclick = () => { const a = P.alarms[+b.dataset.al]; a.on = !a.on; b.classList.toggle("on", a.on); toast(a.on ? "알람이 설정되었습니다." : "알람이 해제되었습니다."); });
-    el.querySelectorAll("[data-x]").forEach(b => b.onclick = () => toast("지원하지 않는 기능입니다."));
-    return el;
-  }
-
-  /* ================= 음악 ================= */
-  function musicApp() {
-    const el = h(`<section class="scr"><div class="tbar">음악<small>${(P.music || []).length}곡</small></div>
-      <div class="scroll list">${(P.music || []).map((s, i) => `<button class="row" data-song="${i}" style="width:100%;text-align:left"><span class="ph" style="background:linear-gradient(135deg,#3b2a5c,#121019);align-items:center"><svg viewBox="0 0 34 34" style="width:26px;height:26px">${G.music}</svg></span><span class="tx"><b>${esc(s.title)}</b><small>${esc(s.artist)}</small></span></button>`).join("") || `<div class="empty">음악이 없습니다.</div>`}</div></section>`);
-    el.addEventListener("click", e => { const b = e.target.closest("[data-song]"); if (b) push(nowPlaying(+b.dataset.song)); });
-    return el;
-  }
-  function nowPlaying(i) {
-    const s = P.music[i]; let on = true, p = 0;
-    const el = h(`<section class="scr"><div class="tbar">재생 중</div>
-      <div class="mus-art${s.sound ? " rec" : ""}"><svg viewBox="0 0 34 34">${G.music}</svg></div>
-      <div class="mus-t"><b>${esc(s.title)}</b><small>${esc(s.artist || "")}</small></div>
-      <div class="mus-bar"><i></i></div>
-      <div class="mus-tm"><span data-cur>0:00</span><span data-dur>${s.sound ? "--:--" : ""}</span></div>
-      <div class="mus-ctl"><button data-pv><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zM20 6v12L9 12z"/></svg></button><button data-pp></button><button data-nx><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM4 6v12l11-6z"/></svg></button></div>
-      ${s.lines ? `<div class="mus-cap" data-cap></div>` : ""}</section>`);
-    const bar = el.querySelector(".mus-bar i"), pp = el.querySelector("[data-pp]"), cap = el.querySelector("[data-cap]");
-    const ico = () => pp.innerHTML = on ? `<svg viewBox="0 0 24 24"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>` : `<svg viewBox="0 0 24 24"><path d="M7 5v14l12-7z"/></svg>`;
-    const fmt = x => Math.floor(x / 60) + ":" + String(Math.floor(x % 60)).padStart(2, "0");
-    let au = null, t;
-    if (s.sound) {
-      au = new Audio(s.sound); au.preload = "auto";
-      const cur = el.querySelector("[data-cur]"), dur = el.querySelector("[data-dur]");
-      au.onloadedmetadata = () => dur.textContent = fmt(au.duration);
-      au.ontimeupdate = () => {
-        const c = au.currentTime; cur.textContent = fmt(c); if (au.duration) bar.style.width = (c / au.duration * 100) + "%";
-        if (cap) {
-          let L = null; s.lines.forEach(l => { if (c * 1000 >= l.at && c * 1000 < l.at + (l.ms || 3500)) L = l; });
-          const html = L ? (L.who ? `<b>${esc(L.who)}</b>` : "") + `<span${L.fx ? ' class="fx"' : ""}>${esc(L.text)}</span>` : "";
-          if (cap.innerHTML !== html) cap.innerHTML = html;
-        }
-      };
-      au.onended = () => { on = false; ico(); };
-      au.onerror = () => { on = false; ico(); toast("파일을 재생할 수 없습니다."); };
-      au.play().catch(() => { on = false; ico(); });
-      pp.onclick = () => { on = !on; on ? au.play() : au.pause(); ico(); };
-      el.querySelector(".mus-bar").onclick = ev => { if (!au.duration) return; const r = ev.currentTarget.getBoundingClientRect(); au.currentTime = (ev.clientX - r.left) / r.width * au.duration; };
-    } else {
-      pp.onclick = () => { on = !on; ico(); };
-      t = setInterval(() => { if (on) { p = Math.min(100, p + .5); bar.style.width = p + "%"; } }, 1000);
+      default:
+        return h(`<section class="scr">
+          <div class="tbar">${esc(name)}</div>
+            <div class="scroll dv">
+              <p>지원하지 않는 파일 형식입니다.</p>
+            </div>
+          </section>
+        `);
     }
-    ico();
-    el._onClose = () => { clearInterval(t); if (au) { au.pause(); au.src = ""; } };
-    el.querySelector("[data-pv]").onclick = () => { if (au && au.currentTime > 3) { au.currentTime = 0; return; } if (i > 0) { pop(); push(nowPlaying(i - 1)); } };
-    el.querySelector("[data-nx]").onclick = () => { if (i < P.music.length - 1) { pop(); push(nowPlaying(i + 1)); } };
-    return el;
-  }
-
-  /* ================= 갤러리 ================= */
-  const tint = k => `linear-gradient(135deg,hsl(${(k * 67) % 360} 35% 38%),hsl(${(k * 67 + 40) % 360} 30% 18%))`;
-  function galleryApp() {
-    const el = h(`<section class="scr"><div class="tbar">갤러리</div><div class="scroll list">${(P.gallery || []).map((a, i) => `<button class="row" data-album="${i}" style="width:100%;text-align:left"><span class="ph" style="background:${a.photos[0] && a.photos[0].img ? `url('${esc(a.photos[0].img)}') center/cover` : tint(i)}"></span><span class="tx"><b>${esc(a.album)}</b><small>${a.photos.length}개</small></span></button>`).join("")}</div></section>`);
-    el.addEventListener("click", e => {
-      const b = e.target.closest("[data-album]"); if (!b) return; const A = P.gallery[+b.dataset.album];
-      const g = h(`<section class="scr"><div class="tbar">${esc(A.album)}</div><div class="scroll"><div class="gal-grid">${A.photos.map((p, k) => `<button data-ph="${k}" style="background:${p.img ? `url('${esc(p.img)}') center/cover` : tint(k + 3)}">${p.img ? "" : esc(p.caption || "")}</button>`).join("")}</div></div></section>`);
-      g.addEventListener("click", ev => {
-        const q = ev.target.closest("[data-ph]"); if (!q) return; const p = A.photos[+q.dataset.ph];
-        push(h(`<section class="scr viewer"><div class="pic" style="${p.img ? `background-image:url('${esc(p.img)}')` : `background:${tint(+q.dataset.ph + 3)}`}">${p.img ? "" : esc(p.caption || "")}</div></section>`));
-      });
-      push(g);
-    });
-    return el;
-  }
-
-  /* ================= 인터넷 ================= */
-  function internetApp() {
-    const N = P.portal || { news: [], trends: [], comments: [] };
-    const page = (url, inner) => h(`<section class="scr web"><div class="urlbar"><span>http://${esc(url)}</span></div><div class="scroll wb">${inner}</div></section>`);
-    const thumb = i => `<span class="wb-th" style="background:${tint(i + 5)}"></span>`;
-    const el = page(N.url, `
-      <div class="wb-top"><b class="wb-logo">${esc(N.name)}</b><div class="wb-search"><span>검색어를 입력하세요</span><i>검색</i></div></div>
-      <nav class="wb-tabs"><b>뉴스</b><span>연예</span><span>스포츠</span><span>경제</span><span>블로그</span></nav>
-      <div class="wb-box"><h3>실시간 급상승 검색어</h3><ol class="wb-rank">${N.trends.map((t, i) => `<li><em>${i + 1}</em>${esc(t)}<small>${i < 3 ? "▲" : i % 3 ? "NEW" : "▲"}</small></li>`).join("")}</ol></div>
-      <div class="wb-box"><h3>많이 본 뉴스</h3>${N.news.map((n, i) => `<button class="wb-news" data-art="${i}">${thumb(i)}<span><b>${esc(n.title)}</b><small>${esc(n.press)} · ${esc(n.time)} · 댓글 ${n.cm.toLocaleString()}</small></span></button>`).join("")}</div>
-      <div class="wb-foot">${esc(N.name)} · PC버전 · 로그인</div>`);
-    el.addEventListener("click", e => { const b = e.target.closest("[data-art]"); if (b) push(article(+b.dataset.art)); });
-    function article(i) {
-      const n = N.news[i], cm = n.comments || [];   // 기사마다 다른 댓글
-      const NICKS = ["kjh7****", "정의로운****", "sky_****", "lee0****", "달빛고양****", "anon****", "parkm****", "서울시민****", "hjk9****", "무명****", "jjang****", "엄마는강하****", "bluew****", "소시민****", "dkfk****", "yoon****", "현실주****", "mnb1****", "강남구****", "qwer****", "새벽세시****", "ch0i****", "그냥지나가****", "zzzz****"];
-      const nick = k => NICKS[(i * 5 + k * 7) % NICKS.length];
-      const ago = k => ["방금 전", "3분 전", "12분 전", "27분 전", "41분 전", "1시간 전", "1시간 전", "2시간 전", "3시간 전"][k] || "5시간 전";
-      const a = page(`${N.url}/news/${2018040300 + i}`, `
-        <div class="wb-top sm"><b class="wb-logo">${esc(N.name)} 뉴스</b></div>
-        <article class="wb-art"><h1>${esc(n.title)}</h1><p class="wb-meta">${esc(n.press)} | 입력 ${esc(n.time)}</p>
-          <div class="wb-img" style="background:${tint(i + 5)}">사진</div>
-          ${n.body.map(p => `<p>${esc(p)}</p>`).join("")}
-          <p class="wb-rep">${esc(n.press)} 기자 · 무단 전재 및 재배포 금지</p></article>
-        <div class="wb-box"><h3>댓글 <em>${n.cm.toLocaleString()}</em></h3>
-          ${cm.map((c, k) => `<div class="wb-cm${k < 2 ? " best" : ""}">${k < 2 ? `<em class="bst">BEST</em>` : ""}<b>${nick(k)}</b><small>${ago(k)}</small><p>${esc(c)}</p><span>공감 ${(k < 2 ? 1800 - k * 430 : 0) + (((i + 3) * (k + 7) * 37) % 600 + 12)} · 비공감 ${(((i + 1) * (k + 2) * 13) % (c.includes("ㅋ") ? 40 : 260))}${k % 3 === 1 ? ` · 답글 ${((i + k) * 7) % 40 + 2}` : ""}</span></div>`).join("")}
-          <div class="wb-more">댓글 더보기 ▼</div></div>`);
-      return a;
-    }
-    return el;
   }
 
   /* ================= 하드웨어 버튼 ================= */
@@ -932,10 +816,14 @@
   const wake = () => { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); else if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) { } };
   addEventListener("pointerdown", wake, { capture: true }); addEventListener("keydown", wake, { capture: true });
 
+  const { memoApp, calendarApp, scaryApp, clockApp } = createOrganizerApps({ P, h, esc, push, deliverSMS, randomUnicode, toast, IC, WD, TODAY, key, parseD, isSmsStopped: () => stop_sms, setSmsStopped: value => stop_sms = value });
+  const { musicApp } = createMusicApp({ P, h, esc, G, push, pop, toast });
+  const { galleryApp, internetApp } = createMediaApps({ P, h, esc, push });
+
   if (layer.classList.contains("open")) return;
   if (t0 === null) t0 = Date.now();
   stupidLoop();
-  threatLoop();
+  stupidCallLoop();
   wake();
   Object.values(P.callScripts || {}).forEach(s => { (s.lines || []).forEach(l => l && l.sound && loadSound(l.sound)); s.pickupSound && loadSound(s.pickupSound); });
   fit();
