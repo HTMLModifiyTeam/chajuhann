@@ -767,23 +767,20 @@ import { data } from "./modules/data.js"
 
       case "pdf":
         const B = b => b.stamp ? `<div class="dv-stamp">${esc(b.stamp)}</div>` : b.small ? `<p class="dv-small">${esc(b.small)}</p>` : b.h ? `<h1>${esc(b.h).replace(/\n/g, "<br>")}</h1>` : b.h2 ? `<h2>${esc(b.h2)}</h2>` : b.quote ? `<blockquote>${esc(b.quote)}</blockquote>` : b.table ? `<table>${b.table.map((r, i) => `<tr>${r.map(c => i ? `<td>${esc(c)}</td>` : `<th>${esc(c)}</th>`).join("")}</tr>`).join("")}</table>` : `<p>${esc(b.p || "")}</p>`;
-        return h(`
-          <section class="scr">
-            <div class="tbar" style="font-size:14px">${esc(name)}</div>
+        return h(`<section class="scr">
+          <div class="tbar" style="font-size:14px">${esc(name)}</div>
             <div class="scroll dv">
               <div class="dv-page">${(F.blocks || []).map(B).join("")}</div>
             </div>
-          </section>
-        `);
+          </section>`);
 
       case "txt":
         return h(`<section class="scr">
-          <div class="tbar">${esc(name)}</div>
+          <div class="tbar" style="font-size:14px">${esc(name)}</div>
             <div class="scroll dv">
-              <p>${(F.texts || []).join("")}</p>
+              <div class="dv-page txt-page">${(F.texts || []).map(t => `<div>${esc(t)}</div>`).join("")}</div>
             </div>
-          </section>
-        `);
+          </section>`);
 
       default:
         return h(`<section class="scr">
@@ -791,8 +788,7 @@ import { data } from "./modules/data.js"
             <div class="scroll dv">
               <p>지원하지 않는 파일 형식입니다.</p>
             </div>
-          </section>
-        `);
+          </section>`);
     }
   }
 
@@ -805,7 +801,6 @@ import { data } from "./modules/data.js"
     else if (k === "home") popToRoot();
   }));
 
-  /* ================= 열기 / 닫기 ================= */
   function fit() {
     if (innerWidth <= 520) { body.style.transform = ""; return; }
     const s = Math.min(1, (innerHeight - 24) / 742, (innerWidth - 24) / 372);
