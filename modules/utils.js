@@ -19,3 +19,19 @@ export function randomUnicode(length) {
     }
     return result;
 }
+
+export function fmtNum(n) {
+  if (/[*#]/.test(n)) return n;
+  if (n.length <= 3) return n;
+  if (n.startsWith("02")) {
+    if (n.length <= 5) return n.replace(/^(\d{2})(\d+)/, "$1-$2");
+    const tail = n.length > 9 ? 4 : n.length - 6 >= 4 ? 4 : 3;
+    return n.replace(new RegExp(`^(\\d{2})(\\d{${n.length > 9 ? 4 : 3}})(\\d*)$`), "$1-$2-$3").replace(/-$/, "");
+  }
+  if (n.length <= 7) return n.replace(/^(\d{3})(\d+)/, "$1-$2");
+  if (n.length <= 11) return n.replace(/^(\d{3})(\d{3,4})(\d{0,4})$/, (m, a, b, c) => {
+    if (n.length === 11) return `${a}-${n.slice(3, 7)}-${n.slice(7)}`;
+    return `${a}-${b}-${c}`.replace(/-$/, "");
+  });
+  return n.replace(/^(\d{3})(\d{4})(\d+)$/, "$1-$2-$3");
+}
