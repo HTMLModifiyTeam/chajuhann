@@ -20,45 +20,13 @@ export function createMusicApp({ P, h, esc, G, push, pop, toast }) {
     let lastLine = null;
     let closed = false;
 
-    const el = h(`
-    <section class="scr">
-      <div class="tbar">재생 중</div>
-
-      <div class="mus-art${hasAudio ? " rec" : ""}">
-        <svg viewBox="0 0 34 34">${G.music}</svg>
-      </div>
-
-      <div class="mus-t">
-        <b>${esc(s.title || "")}</b>
-        <small>${esc(s.artist || "")}</small>
-      </div>
-
+    const el = h(`<section class="scr"><div class="tbar">재생 중</div>
+      <div class="mus-art${s.sound ? " rec" : ""}"><svg viewBox="0 0 34 34">${G.music}</svg></div>
+      <div class="mus-t"><b>${esc(s.title)}</b><small>${esc(s.artist || "")}</small></div>
       <div class="mus-bar"><i></i></div>
-
-      <div class="mus-tm">
-        <span data-cur>0:00</span>
-        <span data-dur>${hasAudio ? "--:--" : ""}</span>
-      </div>
-
-      <div class="mus-ctl">
-        <button data-pv aria-label="이전 곡">
-          <svg viewBox="0 0 24 24">
-            <path d="M6 6h2v12H6zM20 6v12L9 12z"/>
-          </svg>
-        </button>
-
-        <button data-pp aria-label="재생 또는 일시정지"></button>
-
-        <button data-nx aria-label="다음 곡">
-          <svg viewBox="0 0 24 24">
-            <path d="M16 6h2v12h-2zM4 6v12l11-6z"/>
-          </svg>
-        </button>
-      </div>
-
-      ${lines.length ? '<div class="mus-cap" data-cap></div>' : ""}
-    </section>
-  `);
+      <div class="mus-tm"><span data-cur>0:00</span><span data-dur>${s.sound ? "--:--" : ""}</span></div>
+      <div class="mus-ctl"><button data-pv><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zM20 6v12L9 12z"/></svg></button><button data-pp></button><button data-nx><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM4 6v12l11-6z"/></svg></button></div>
+      ${s.lines ? `<div class="mus-cap" data-cap></div>` : ""}</section>`);
 
     const $ = selector => el.querySelector(selector);
 
@@ -73,14 +41,12 @@ export function createMusicApp({ P, h, esc, G, push, pop, toast }) {
 
     function fmt(seconds) {
       if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
-
       const total = Math.floor(seconds);
       return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
     }
 
     function setPlaying(value) {
       playing = value;
-
       pp.innerHTML = playing ? `<svg viewBox="0 0 24 24"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>` : `<svg viewBox="0 0 24 24"><path d="M7 5v14l12-7z"/></svg>`;
       pp.setAttribute("aria-label", playing ? "일시정지" : "재생");
     }
@@ -96,7 +62,6 @@ export function createMusicApp({ P, h, esc, G, push, pop, toast }) {
       const ms = time * 1000;
       let active = null;
 
-      // Preserve the original behavior: the last matching line wins.
       for (let n = lines.length - 1; n >= 0; n--) {
         const line = lines[n];
         const start = Number(line.at);
@@ -108,7 +73,6 @@ export function createMusicApp({ P, h, esc, G, push, pop, toast }) {
         }
       }
 
-      // Avoid rebuilding the caption when the line hasn't changed.
       if (active === lastLine) return;
       lastLine = active;
 
@@ -168,9 +132,7 @@ export function createMusicApp({ P, h, esc, G, push, pop, toast }) {
       const result = au.play();
 
       if (result && typeof result.catch === "function") {
-        result.catch(() => {
-          if (!closed) setPlaying(false);
-        });
+        result.catch(() => { if (!closed) setPlaying(false); });
       }
     }
 
@@ -179,7 +141,6 @@ export function createMusicApp({ P, h, esc, G, push, pop, toast }) {
 
       if (au) {
         if (au.paused || au.ended) {
-          // Restart finished tracks from the beginning.
           if (au.ended) au.currentTime = 0;
           playAudio();
         } else au.pause();
@@ -236,7 +197,6 @@ export function createMusicApp({ P, h, esc, G, push, pop, toast }) {
 
       playAudio();
     } else {
-      // Simulated progress for tracks without an audio file.
       timer = setInterval(() => {
         if (closed || !playing) return;
 
@@ -250,9 +210,7 @@ export function createMusicApp({ P, h, esc, G, push, pop, toast }) {
       }, 1000);
     }
 
-    // Controls
     pp.addEventListener("click", togglePlayback);
-
     $("[data-pv]").addEventListener("click", () => {
       if (au && au.currentTime > 3) {
         au.currentTime = 0;
@@ -263,17 +221,12 @@ export function createMusicApp({ P, h, esc, G, push, pop, toast }) {
       navigateTo(i - 1);
     });
 
-    $("[data-nx]").addEventListener("click", () => {
-      navigateTo(i + 1);
-    });
+    $("[data-nx]").addEventListener("click", () => { navigateTo(i + 1); });
 
-    // Initialize the playback icon.
     setPlaying(playing);
 
-    // Called by the UI when this screen is closed.
     el._onClose = () => {
       if (closed) return;
-
       closed = true;
 
       if (timer !== null) {
@@ -286,5 +239,5 @@ export function createMusicApp({ P, h, esc, G, push, pop, toast }) {
     return el;
   }
 
-  return { musicApp };
+  return musicApp;
 }

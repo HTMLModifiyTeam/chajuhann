@@ -1,7 +1,7 @@
 import { createOrganizerApps } from "./modules/organizer-apps.js";
 import { createMusicApp } from "./modules/music-app.js";
 import { createMediaApps } from "./modules/media-apps.js";
-import { getRandomNumber, randomUnicode } from "./modules/utils.js"
+import { getRandomNumber, randomUnicode, fmtNum, randomArray } from "./modules/utils.js"
 import { data } from "./modules/data.js"
 
 (() => {
@@ -193,7 +193,7 @@ import { data } from "./modules/data.js"
 
   /* ================= 홈 ================= */
   function homeScreen() {
-    const page = `<div class="wg wg-clock"><div><div class="t" data-now></div><div class="d">${dateLabel(TODAY)}</div></div><div class="w">모리오초<b>${getRandomNumber(-9999, 9999)}°</b>매우맑음</div></div>${["internet", "calendar", "memo", "clock", "gallery", "music"].map(id => appBtn(id)).join("")}`;
+    const page = `<div class="wg wg-clock"><div><div class="t" data-now></div><div class="d">${dateLabel(TODAY)}</div></div><div class="w">${P.location != null ? randomArray(P.location) : "모리오초"}<b>${getRandomNumber(-9999, 9999)}°</b>매우맑음</div></div>${["internet", "calendar", "memo", "clock", "gallery", "music"].map(id => appBtn(id)).join("")}`;
     const el = h(`<section class="scr home">${wallHTML()}
       <div class="hm-dots"></div>
       <div class="hm-pages"><div class="hm-track"><div class="hm-page">${page}</div></div></div>
@@ -269,7 +269,7 @@ import { data } from "./modules/data.js"
       if (t === "keypad") {
         bodyEl.innerHTML = `<div class="dial-num" data-num></div><div class="dial-pad">${["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"].map(k => `<button data-k="${k}">${k}<small>${LET[k] || (k === "1" ? "∞" : "&nbsp;")}</small></button>`).join("")}</div>
           <div class="dial-act"><button data-dsms>${IC.sms}</button><button class="call" data-dcall>${IC.handset}</button><button data-del>${IC.back}</button></div>`;
-        const show = () => { const d = bodyEl.querySelector("[data-num]"); d.textContent = num || "번호를 입력하세요"; d.classList.toggle("empty", !num); };
+        const show = () => { const d = bodyEl.querySelector("[data-num]"); d.textContent = fmtNum(num) || "번호를 입력하세요"; d.classList.toggle("empty", !num); };
         show();
         bodyEl.querySelectorAll("[data-k]").forEach(b => {
           let lp = null, fired = false;
@@ -278,7 +278,8 @@ import { data } from "./modules/data.js"
           b.onclick = () => { if (fired) return; dtmf(b.dataset.k); if (num.length < 16) num += b.dataset.k; show(); };
         });
         bodyEl.querySelector("[data-del]").onclick = () => { num = num.slice(0, -1); show(); };
-        bodyEl.querySelector("[data-dcall]").onclick = () => { if (!num) { const last = P.calls.find(c => c.dir === "out"); if (last) { num = numberOf(last.name); show(); } return; } placeCall(num); };
+        bodyEl.querySelector("[data-dcall]").onclick = () => {
+          if (!num) { const last = P.calls.find(c => c.dir === "out"); if (last) { num = numberOf(last.name); show(); } return; } placeCall(fmtNum(num)); };
         bodyEl.querySelector("[data-dsms]").onclick = () => { if (num) push(convScreen(threadFor(nameOf(num)))); };
       } else if (t === "log") {
         P.calls.forEach(c => { if (c.dir === "missed") c.seen = true; }); sbIcons();
@@ -320,7 +321,6 @@ import { data } from "./modules/data.js"
     out.connect(hp); hp.connect(lp); lp.connect(ctx.destination);
     const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate), nd = noiseBuf.getChannelData(0);
     for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
-    const R = (a, b) => a + Math.random() * (b - a);
     const breath = (t, dur, freq, vol, rise) => {   // 숨소리 (들숨은 rise=true)
       const s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
       const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.setValueAtTime(freq, t); f.frequency.linearRampToValueAtTime(freq * (rise ? 1.5 : .8), t + dur); f.Q.value = 1.4;
@@ -331,9 +331,9 @@ import { data } from "./modules/data.js"
     const voice = (t, dur, f0a, f0b, vol) => {   // 떨리는 목소리 한 토막
       const o = ctx.createOscillator(); o.type = "sawtooth";
       o.frequency.setValueAtTime(f0a, t); o.frequency.exponentialRampToValueAtTime(f0b, t + dur);
-      const vib = ctx.createOscillator(), vg = ctx.createGain(); vib.frequency.value = R(5, 8); vg.gain.value = R(6, 14); vib.connect(vg); vg.connect(o.frequency);
+      const vib = ctx.createOscillator(), vg = ctx.createGain(); vib.frequency.value = getRandomNumber(5, 8); vg.gain.value = getRandomNumber(6, 14); vib.connect(vg); vg.connect(o.frequency);
       const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .03); g.gain.setValueAtTime(vol * .8, t + dur * .6); g.gain.linearRampToValueAtTime(0, t + dur);
-      [[R(600, 800), 5, 1], [R(1050, 1300), 7, .6], [2600, 9, .25]].forEach(([fr, q, amt]) => {   // 모음 '으/어' 포먼트
+      [[getRandomNumber(600, 800), 5, 1], [getRandomNumber(1050, 1300), 7, .6], [2600, 9, .25]].forEach(([fr, q, amt]) => {   // 모음 '으/어' 포먼트
         const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = fr; bp.Q.value = q;
         const fg = ctx.createGain(); fg.gain.value = amt; o.connect(bp); bp.connect(fg); fg.connect(g);
       });
@@ -342,11 +342,11 @@ import { data } from "./modules/data.js"
     };
     let t = ctx.currentTime + .15; const end = t + ms / 1000 - .3;
     while (t < end) {
-      breath(t, R(.28, .45), 1800, R(.10, .16), true); t += R(.35, .5);           // 헉 (들숨)
-      const n = Math.floor(R(2, 5)), base = R(260, 330);
-      for (let k = 0; k < n && t < end; k++) { const d = R(.14, .26); voice(t, d, base * R(1, 1.08), base * R(.82, .92), R(.10, .16) * (1 - k * .12)); t += d + R(.05, .11); }
-      if (Math.random() < .45 && t < end - 1) { const d = R(.6, 1.1); voice(t, d, R(300, 360), R(190, 230), R(.08, .13)); t += d + .1; }   // 길게 흐으으
-      breath(t, R(.4, .7), 900, R(.05, .08), false); t += R(.5, 1.3);              // 내쉬는 숨
+      breath(t, getRandomNumber(.28, .45), 1800, getRandomNumber(.10, .16), true); t += getRandomNumber(.35, .5);           // 헉 (들숨)
+      const n = Math.floor(getRandomNumber(2, 5)), base = getRandomNumber(260, 330);
+      for (let k = 0; k < n && t < end; k++) { const d = getRandomNumber(.14, .26); voice(t, d, base * getRandomNumber(1, 1.08), base * getRandomNumber(.82, .92), getRandomNumber(.10, .16) * (1 - k * .12)); t += d + getRandomNumber(.05, .11); }
+      if (Math.random() < .45 && t < end - 1) { const d = getRandomNumber(.6, 1.1); voice(t, d, getRandomNumber(300, 360), getRandomNumber(190, 230), getRandomNumber(.08, .13)); t += d + .1; }   // 길게 흐으으
+      breath(t, getRandomNumber(.4, .7), 900, getRandomNumber(.05, .08), false); t += getRandomNumber(.5, 1.3);              // 내쉬는 숨
     }
   }
   /* 녹음된 소리 재생 (audio 폴더의 mp3). 휴대폰을 열 때 미리 불러 둠 */
@@ -812,7 +812,7 @@ import { data } from "./modules/data.js"
   addEventListener("pointerdown", wake, { capture: true }); addEventListener("keydown", wake, { capture: true });
 
   const { memoApp, calendarApp, scaryApp, clockApp } = createOrganizerApps({ P, h, esc, push, deliverSMS, randomUnicode, toast, IC, WD, TODAY, key, parseD, isSmsStopped: () => stop_sms, setSmsStopped: value => stop_sms = value });
-  const { musicApp } = createMusicApp({ P, h, esc, G, push, pop, toast });
+  const musicApp = createMusicApp({ P, h, esc, G, push, pop, toast });
   const { galleryApp, internetApp } = createMediaApps({ P, h, esc, push });
 
   if (layer.classList.contains("open")) return;
