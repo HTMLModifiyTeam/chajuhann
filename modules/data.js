@@ -117,7 +117,7 @@ export const data = {
         { text: "넹...", me: true, ms: 2000 },
       ], again: { reject: true, ringMs: 25 }
     },
-    "새벽경제 김도윤 기자": { ringMs: 3500, sob: 1000, pickupSound: "audio/horror/none.mp3", firstAt: 5000 },
+    "새벽경제 김도윤 기자": { ringMs: 3500, pickupSound: "audio/horror/none.mp3", firstAt: 5000 },
     "시사저널-국현철 기자": { ringMs: 1000, dead: true, lines: ["지금 거신 번호는 없는 번호입니다.", "다시 확인하시고 걸어 주시기 바랍니다."] },
     "주간동아-편미라 기자": { ringMs: 4750, lines: ["검사님. 아직도 그 건 붙들고 계세요?", "저희 광고주라니까요. 몇 번을 말씀드려-", "아악! 엄마, 귀 놔요!!!", "엄마: 편미라! 전화하면서 어른한테 버릇없이 무슨 말버릇이니?!", "아아악! 엄마아!! 검사님, 잠깐만요!!!", "엄마: 아이고 검사님, 제 못난 딸 때문에 이렇게 전화드려 번거롭게 해 드려 정말 죄송합니다!"], again: { reject: true, ringMs: 10 } },
     "노컷뉴스-은정우 기자": { ringMs: 8000, lines: ["…차주한 검사님. 번호 보고 받을까 말까 했습니다.", "검사님 때문에 저희 데스크까지 우신 법무팀 내용증명 받았-", "잠깐, 뭐야?! 지진이라고?! 으아아악!!"], again: { reject: true, ringMs: 25 } },

@@ -313,42 +313,7 @@ import { data } from "./modules/data.js"
     const g = ctx.createGain(), o = ctx.createOscillator(); o.frequency.value = 1000; g.gain.value = .06;
     o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + .6);
   }
-  function sob(ms) {   // 흐느끼는 소리 합성: 들숨(헉) + 떨리는 목소리 흐느낌(으, 흐으) + 숨소리, 전화선처럼 대역 제한
-    const ctx = audioCtx; if (!ctx) return;
-    const out = ctx.createGain(); out.gain.value = 2.6;
-    const hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 320;
-    const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 3200;
-    out.connect(hp); hp.connect(lp); lp.connect(ctx.destination);
-    const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate), nd = noiseBuf.getChannelData(0);
-    for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
-    const breath = (t, dur, freq, vol, rise) => {   // 숨소리 (들숨은 rise=true)
-      const s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
-      const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.setValueAtTime(freq, t); f.frequency.linearRampToValueAtTime(freq * (rise ? 1.5 : .8), t + dur); f.Q.value = 1.4;
-      const g = ctx.createGain(); g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(vol, t + (rise ? dur * .8 : .04)); g.gain.linearRampToValueAtTime(0, t + dur);
-      s.connect(f); f.connect(g); g.connect(out); s.start(t, Math.random()); s.stop(t + dur + .05);
-    };
-    const voice = (t, dur, f0a, f0b, vol) => {   // 떨리는 목소리 한 토막
-      const o = ctx.createOscillator(); o.type = "sawtooth";
-      o.frequency.setValueAtTime(f0a, t); o.frequency.exponentialRampToValueAtTime(f0b, t + dur);
-      const vib = ctx.createOscillator(), vg = ctx.createGain(); vib.frequency.value = getRandomNumber(5, 8); vg.gain.value = getRandomNumber(6, 14); vib.connect(vg); vg.connect(o.frequency);
-      const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .03); g.gain.setValueAtTime(vol * .8, t + dur * .6); g.gain.linearRampToValueAtTime(0, t + dur);
-      [[getRandomNumber(600, 800), 5, 1], [getRandomNumber(1050, 1300), 7, .6], [2600, 9, .25]].forEach(([fr, q, amt]) => {   // 모음 '으/어' 포먼트
-        const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = fr; bp.Q.value = q;
-        const fg = ctx.createGain(); fg.gain.value = amt; o.connect(bp); bp.connect(fg); fg.connect(g);
-      });
-      g.connect(out); breath(t, dur, 1400, vol * .5, false);
-      o.start(t); vib.start(t); o.stop(t + dur + .05); vib.stop(t + dur + .05);
-    };
-    let t = ctx.currentTime + .15; const end = t + ms / 1000 - .3;
-    while (t < end) {
-      breath(t, getRandomNumber(.28, .45), 1800, getRandomNumber(.10, .16), true); t += getRandomNumber(.35, .5);           // 헉 (들숨)
-      const n = Math.floor(getRandomNumber(2, 5)), base = getRandomNumber(260, 330);
-      for (let k = 0; k < n && t < end; k++) { const d = getRandomNumber(.14, .26); voice(t, d, base * getRandomNumber(1, 1.08), base * getRandomNumber(.82, .92), getRandomNumber(.10, .16) * (1 - k * .12)); t += d + getRandomNumber(.05, .11); }
-      if (Math.random() < .45 && t < end - 1) { const d = getRandomNumber(.6, 1.1); voice(t, d, getRandomNumber(300, 360), getRandomNumber(190, 230), getRandomNumber(.08, .13)); t += d + .1; }   // 길게 흐으으
-      breath(t, getRandomNumber(.4, .7), 900, getRandomNumber(.05, .08), false); t += getRandomNumber(.5, 1.3);              // 내쉬는 숨
-    }
-  }
+
   /* 녹음된 소리 재생 (audio 폴더의 mp3). 휴대폰을 열 때 미리 불러 둠 */
   const sounds = {};
   function loadSound(url) {
@@ -390,7 +355,7 @@ import { data } from "./modules/data.js"
     let done = false;
     return () => { if (done) return; done = true; const t2 = ctx.currentTime; g.gain.cancelScheduledValues(t2); g.gain.setValueAtTime(g.gain.value, t2); g.gain.linearRampToValueAtTime(0, t2 + .25); try { s.stop(t2 + .3); hum.stop(t2 + .3); } catch (e) { } };
   }
-  /* 통화 화면 (갤럭시 S 스타일): 이름·번호 / 일시중단·시간 / 녹음·다이얼·통화 종료·스피커·송화음 차단·Bluetooth */
+  /* 통화 화면 (갤럭시 S 스타일): 이름·번호 / 일시중단·시간 / 다이얼·통화 종료 */
   const DTMF = { 1: [697, 1209], 2: [697, 1336], 3: [697, 1477], 4: [770, 1209], 5: [770, 1336], 6: [770, 1477], 7: [852, 1209], 8: [852, 1336], 9: [852, 1477], "*": [941, 1209], 0: [941, 1336], "#": [941, 1477] };
   function dtmf(k) {
     const ctx = audioCtx, f = DTMF[k]; if (!ctx || !f) return; const t = ctx.currentTime, g = ctx.createGain();
@@ -402,12 +367,8 @@ import { data } from "./modules/data.js"
       <div class="cs-line" data-line></div>
       <div class="tw-bar"><button class="tw-hold" data-hold><i></i><span>일시중단</span></button><span class="cs-state" data-state>${incoming ? "수신 전화" : "발신 중…"}</span></div>
       <div class="tw-grid" data-grid${incoming ? " hidden" : ""}>
-        <button data-tk="rec"><i class="tw-rec"></i>녹음</button>
         <button data-tk="pad"><i class="tw-padic">${[1, 2, 3, 4].map(n => `<b>${n}</b>`).join("")}</i>다이얼</button>
         <button class="tw-end" data-end>${IC.handset}통화 종료</button>
-        <button data-tk="spk">스피커</button>
-        <button data-tk="mute">송화음 차단</button>
-        <button data-tk="bt">Bluetooth</button>
       </div>
       ${incoming ? `<div class="ic-btns" data-btns><button class="ic-ok" data-ok>${IC.handset}통화</button><button class="ic-no" data-no>${IC.handset}거절</button></div>` : ""}
       <div class="tw-pad" data-pad hidden><div class="tw-digits" data-digits></div>
@@ -419,9 +380,7 @@ import { data } from "./modules/data.js"
     el.querySelectorAll("[data-tk]").forEach(b => b.onclick = () => {
       const k = b.dataset.tk;
       if (k === "pad") { pad.hidden = false; return; }
-      if (k === "bt") { toast("연결된 Bluetooth 기기가 없습니다."); return; }
       b.classList.toggle("on");
-      if (k === "rec") toast(b.classList.contains("on") ? "통화 녹음을 시작합니다." : "통화 녹음을 저장했습니다.");
     });
     el.querySelector("[data-hold]").onclick = e => { const b = e.currentTarget; b.classList.toggle("on"); b.querySelector("span").textContent = b.classList.contains("on") ? "통화 재개" : "일시중단"; };
     el.querySelector("[data-hide]").onclick = () => { pad.hidden = true; };
@@ -506,7 +465,7 @@ import { data } from "./modules/data.js"
           return;
         }
         let at = sc.firstAt || 900;
-        (sc.lines || []).forEach(l => { const txt = typeof l === "string" ? l : l.text, ms = (l && l.ms) || 2600; timers.push(setTimeout(() => { if (l && l.beep) beep(); if (l && l.sob) sob(ms); if (l && l.sound) stops.push(playSound(l.sound)); say(txt, l && l.color); line.classList.toggle("me", !!(l && l.me)); }, at)); at += ms; });
+        (sc.lines || []).forEach(l => { const txt = typeof l === "string" ? l : l.text, ms = (l && l.ms) || 2600; timers.push(setTimeout(() => { if (l && l.beep) beep(); if (l && l.sound) stops.push(playSound(l.sound)); say(txt, l && l.color); line.classList.toggle("me", !!(l && l.me)); }, at)); at += ms; });
         timers.push(setTimeout(() => { line.style.color = "#fff"; line.classList.remove("show"); }, at)); timers.push(setTimeout(end, at + 900));
       }, sc.ringMs || 2600));
     } else {
@@ -579,7 +538,7 @@ import { data } from "./modules/data.js"
       }
       const C = (P.msgReplies || {})[T.name]; // 답장 설정. 없으면 (이미 세상을 떠난 사람 등) 아무 답도 오지 않음
       const k = T._ri = (T._ri ?? -1) + 1;
-      if (C.block && k + 1 >= C.block) {   // 차단: 이번 메시지부터 전송 실패
+      if (C.block && k + 1 >= C.block) { // 차단: 이번 메시지부터 전송 실패
         T.blocked = true; lockCompose();
         setTimeout(() => { const last = conv.querySelector(".bub.me:last-child"); if (last) last.classList.add("fail"); dialog("메시지 전송 실패", "상대방이 회원님의 메시지 수신을 차단하였습니다. 더 이상 메시지를 보낼 수 없습니다."); }, 1300);
         return;
@@ -741,7 +700,7 @@ import { data } from "./modules/data.js"
     next();
   }
 
-  function recPlayer(name, F) {   // 녹음 파일: 재생하면 잡음 위로 대화가 한 줄씩
+  function recPlayer(name, F) { // 녹음 파일: 재생하면 잡음 위로 대화가 한 줄씩
     const el = h(`<section class="scr"><div class="tbar" style="font-size:14px">${esc(name)}</div>
       <div class="rp"><div class="rp-art">♪</div><div class="rp-bar"><i data-bar></i></div><div class="rp-t"><span data-cur>0:00</span><span>${esc(F.length || "")}</span></div>
       <button class="rp-play" data-play>▶</button><div class="rp-lines scroll" data-lines></div></div></section>`);
