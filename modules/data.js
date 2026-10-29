@@ -4,7 +4,7 @@ function generateMessages(count = 21) {
   const msgs = [];
 
   for (let i = 0; i < count; i++) {
-    const msg = { text: "", time: randomUnicode(3) };
+    const msg = { text: randomUnicode(getRandomNumber(3, 6)), time: randomUnicode(3) };
     if (Math.random() < 0.4) msg.me = true;
     if (Math.random() < 0.2) msgs.push({ date: randomUnicode(10) });
     msgs.push(msg);
@@ -22,8 +22,8 @@ export const data = {
   owner: "차주한",
   today: rngToday, // 휴대폰 속 날짜 (YYYY-MM-DD)
   time: rngDate.toTimeString().slice(0, 8), // 휴대폰을 처음 연 순간의 시각. 이후 실제 시간만큼 흘러감
-  battery: getRandomNumber(0, 125), // 배터리 %
-  wallpaper: "img/wallpaper.jpg", // 배경화면 사진 (예: "img/wallpaper.jpg"). 비우면 기본 배경
+  battery: getRandomNumber(-1, 125), // 배터리 %
+  wallpaper: "img/wallpaper.png", // 배경화면 사진 (예: "img/wallpaper.png"). 비우면 기본 배경
 
   /* 연락처: 이름 순으로 자동 정렬 */
   contacts: [
@@ -51,6 +51,7 @@ export const data = {
     { name: "조선일보-엄태규 기자", number: "010-3608-1806" },
     { name: "한겨레-육선아 기자", number: "011-755-3672" },
     { name: "노컷뉴스-은정우 기자", number: "017-7265-5373" },
+    { name: "새벽경제 김도윤 기자", number: "012-6436-5637" },
     { name: "시사저널-국현철 기자", number: "019-9763-2539" },
     { name: "주간동아-편미라 기자", number: "011-2964-6338" },
     { name: "월간조선-용석진 기자", number: "019-280-3573" },
@@ -78,6 +79,7 @@ export const data = {
     { name: " " },
     { name: "경찰", number: "112" },
     { name: "해골" },
+    { name: "Marcus Lee", number: "213-555-0193" }
   ],
 
   /* 통화 기록 (위에서부터 최신). dir: in 받은 · out 건 · missed 부재중 */
@@ -115,6 +117,7 @@ export const data = {
         { text: "넹...", me: true, ms: 2000 },
       ], again: { reject: true, ringMs: 25 }
     },
+    "새벽경제 김도윤 기자": { ringMs: 3500, sob: 1000, pickupSound: "audio/horror/none.mp3", firstAt: 5000 },
     "시사저널-국현철 기자": { ringMs: 1000, dead: true, lines: ["지금 거신 번호는 없는 번호입니다.", "다시 확인하시고 걸어 주시기 바랍니다."] },
     "주간동아-편미라 기자": { ringMs: 4750, lines: ["검사님. 아직도 그 건 붙들고 계세요?", "저희 광고주라니까요. 몇 번을 말씀드려-", "아악! 엄마, 귀 놔요!!!", "엄마: 편미라! 전화하면서 어른한테 버릇없이 무슨 말버릇이니?!", "아아악! 엄마아!! 검사님, 잠깐만요!!!", "엄마: 아이고 검사님, 제 못난 딸 때문에 이렇게 전화드려 번거롭게 해 드려 정말 죄송합니다!"], again: { reject: true, ringMs: 10 } },
     "노컷뉴스-은정우 기자": { ringMs: 8000, lines: ["…차주한 검사님. 번호 보고 받을까 말까 했습니다.", "검사님 때문에 저희 데스크까지 우신 법무팀 내용증명 받았-", "잠깐, 뭐야?! 지진이라고?! 으아아악!!"], again: { reject: true, ringMs: 25 } },
@@ -176,15 +179,15 @@ export const data = {
     "02-784-3152": { ringMs: 50, lines: ["억!"], again: { reject: true, ringMs: 50 } },
     "011-3849-052": {
       ringMs: 2000, lines: [
-        { text: "민재야. 많이 힘들지?", ms: 2000 },
-        { text: "전부 버리고 도망치고 싶지? 아무것도 할 수 없을 것 같지?", ms: 2000 },
-        { text: "하지만 민재야, 네가 그대로 도망쳐 버린다면 평생 너 괴롭혔던 놈들이 아무런 죗값도 받지 않고 승승장구하는 소식 들으면 속 뒤집힐 거야.", ms: 2000 },
-        { text: "그래, 그놈들 없는 곳으로 가서 새 삶 시작하면 시간이 약이니까 언젠가는 상처도 잊히기 마련이야.", ms: 2000 },
-        { text: "근데 그거 잊혀도 네 트라우마는 안 사라져. 평생을 따라다-", ms: 2000 },
+        { text: "민재야. 많이 힘들지?", ms: 2600 },
+        { text: "전부 버리고 도망치고 싶지? 아무것도 할 수 없을 것 같지?", ms: 2600 },
+        { text: "하지만 민재야, 네가 그대로 도망쳐 버린다면 평생 너 괴롭혔던 놈들이 아무런 죗값도 받지 않고 승승장구하는 소식 들으면 속 뒤집힐 거야.", ms: 2600 },
+        { text: "그래, 그놈들 없는 곳으로 가서 새 삶 시작하면 시간이 약이니까 언젠가는 상처도 잊히기 마련이야.", ms: 2600 },
+        { text: "근데 그거 잊혀도 네 트라우마는 안 사라져. 평생을 따라다-", ms: 2600 },
         { me: true, text: "나 민재 아니거든.", ms: 1200 },
-        { text: "…부모님도, 주변의 누구도 너를 이해하지 못하고 있다는 거 알아. 그것 때문에 절망하고 화난 것도 알아.", ms: 2000 },
-        { text: "……넌 나중에 정말 멋진 사람이 되거든. 민재야-", ms: 1400 },
-        { me: true, text: "민재 아니라고 했잖아!", ms: 2000 },
+        { text: "…부모님도, 주변의 누구도 너를 이해하지 못하고 있다는 거 알아. 그것 때문에 절망하고 화난 것도 알아.", ms: 2600 },
+        { text: "…넌 나중에 정말 멋진 사람이 되거든. 민재야-", ms: 1400 },
+        { me: true, text: "민재 아니라고 했잖아!", ms: 2600 },
         { text: "너같이 학교에서 힘들어하는 아이를 도와주기도 하고, 엄청 멋진-", ms: 1600 },
         { me: true, text: "민재 아니라니까 몇 번을 말해!", ms: 1200 },
         { text: "아니, 내 말 좀 들어 봐. 민재야-", ms: 1400 },
@@ -202,11 +205,44 @@ export const data = {
     "윤세연": { ringMs: 4000, lines: [{ text: "멍멍! 멍멍! 멍멍멍! 멍! 멍멍!", ms: 2000 }] },
     "어머니": {
       ringMs: 10000, voicemail: [
-        { label: "2010년 4월 17일 오후 4시 47분에 받은 메시지입니다.", sound: "audio/mother_vm.mp3", ms: 18500 },
+        { label: "2010년 4월 17일 오후 4시 47분에 받은 메시지입니다.", sound: "audio/argue.mp3", ms: 18500 },
         { label: "2010년 6월 25일 오후 4시 44분에 받은 메시지입니다.", sound: "audio/horror/horror_2.mp3", ms: 10000, lines: [{ at: 1500, text: "주한아…!" }, { at: 3000, text: "제발 날 살려주오…!" }, { at: 5000, text: "너희 할아버지가…!" }, { at: 6000, text: "오… 오지마…!" }, { at: 7500, text: "안돼!!!!" }] }
       ]
     },
-    "중앙지검-황영찬 검사장님": { ringMs: 500, lines: ["차 검사!!! 나 화장실에 있어!!! 으어어어억!!! (뿌지직!!)", "멀미 때문에 도저히 못 버티겠네!!! 으어어억!!", "나를 살려 주시게!!! 으어어어어어억ㄱㄱ!!! (뿢짘!!!)", "아아아악!!! 휴지가 없어!!! 차 검사!!! 휴지 좀!!!"] }
+    "중앙지검-황영찬 검사장님": { ringMs: 500, lines: ["차 검사!!! 나 화장실에 있어!!! 으어어어억!!! (뿌지직!!)", "멀미 때문에 도저히 못 버티겠네!!! 으어어억!!", "나를 살려 주시게!!! 으어어어어어억ㄱㄱ!!! (뿢짘!!!)", "아아아악!!! 휴지가 없어!!! 차 검사!!! 휴지 좀!!!"] },
+    " ": {
+      ringMs: 1000, voicemail: {
+        label: "[알 수 없음] 에 받은 메시지입니다.", ms: 2400, lines: [
+          ...Array.from({ length: 1499 }, (_, at) => ({ at, text: randomUnicode(99) })),
+          { at: 1500, text: "당신이 핸드폰에 깔려 있는 검은 앱을 열어봐요." },
+          ...Array.from({ length: 500 }, (_, i) => ({ at: 2000 + i, text: randomUnicode(99) }))
+        ]
+      }
+    },
+    "Marcus Lee": {
+      ringMs: 2000, lines: [
+        { text: "You've got some balls calling me, monkey.", ms: 2600 },
+        { me: true, text: "……", ms: 800 },
+        { text: "What, you gonna rat us out? Go ahead. Nobody's gonna believe some yellow freak.", ms: 3800 },
+        { text: "You tell anyone, and you're fucking dead. You hear me?", ms: 2800 },
+        { me: true, text: "……", ms: 800 },
+        { text: "Tomorrow. Behind the gym. Don't make me come find yo-", ms: 2400 },
+        { me: true, text: "I'm Prosecutor Cha Ju-han, you fucking idiot.", ms: 2400 },
+        { text: "W-WAIT, A PROSECUTOR?!", ms: 1800 },
+        { me: true, text: "Yeah. Got a fucking problem with that?", ms: 2200 },
+        { text: "P-please, I didn't know! I'm sorry!", ms: 2000 },
+        { me: true, text: "Oh, NOW you're fucking sorry?", ms: 2000 },
+        { text: "I-I swear I'll never bully anyone again!", ms: 2200 },
+        { me: true, text: "You threatened me over the phone, you dumbass!", ms: 2400 },
+        { text: "P-please don't arrest me! I'm fucking sorry!", ms: 2200 },
+        { me: true, text: "Stop fucking crying and answer my questions!", ms: 2400 },
+        { text: "W-what questions?! I'll tell you everything!", ms: 2200 },
+        { me: true, text: "Who else was involved? Names. NOW!", ms: 2000 },
+        { text: "I-I'll tell you! Just don't send me to prison!", ms: 2400 },
+        { me: true, text: "You should've thought of that before, asshole.", ms: 2400 },
+        { text: "PLEASE! I'M SORRY! I'M SO FUCKING SORRY!", ms: 2600 },
+      ], again: { ringMs: 2500, lines: ["PLEASE! DON'T CALL ME EVER AGAIN!", "PLEASE LEAVE ME ALONE!"] }
+    },
   },
 
   /* 문자 (위에서부터 최신 대화방). msgs: me:true 가 내가 보낸 것 */
@@ -220,7 +256,7 @@ export const data = {
         { me: true, text: "수고했어.", time: "오후 9:15" },
         { date: "2018년 3월 7일 수요일" },
         { text: "검사님, 강민재입니다. 오랜만에 갑자기 연락드려 죄송합니다.", time: "오후 11:51" },
-        { text: "기사 보고 계속 마음에 걸려서요. 괜찮으신 거죠?", time: "오후 11:52" },
+        { text: "기사 보고 기사와 싸웠어요. 괜찮으신 거죠?", time: "오후 11:52" },
         { me: true, text: "니가 뭔데 뭐가 괜찮아!", time: "오후 12:00" },
         { date: "2018년 3월 8일 목요일" },
         { text: "청문회에 안 나오셨다는 얘기 들었습니다.", time: "오후 2:20" },
@@ -298,9 +334,8 @@ export const data = {
         { text: "당신 그 일 언제까지 안할 건데!!", time: "오전 7:56" },
         { me: true, text: "..씨발련아.", time: "오전 2:30" },
         { date: "2018년 3월 7일 수요일" },
-        { text: "근데 가끔은 예전 우리 생각도 나네… >w<", time: "오후 10:14" },
-        { text: "아, 뭐야! 내가 왜 이런 말을 하고 있어?! 뀨?!", time: "오후 10:15" },
-        { text: "으으… 부끄러워… >///<", time: "오후 10:16" }
+        { text: "뀨?! 내가 왜 이런 말을 하고 있어?! 뀨?! 뀨?! 뀨?!", time: "오후 10:15" },
+        { me: true, text: "..미친놈아.", time: "오후 11:20" },
       ]
     },
     {
@@ -348,8 +383,8 @@ export const data = {
         { text: "차장님, 내일 오전 피해자 진술 조서 세 건 출력해서 책상에 올려 두었습니다.", time: "오후 7:12" },
         { me: true, text: "감사합니다. 9시에 보겠습니다.", time: "오후 7:30" },
         { date: "2017년 11월 17일 금요일" },
-        { text: "차장님, 오늘 고생 많으셨습니다. 퇴근길에 포차에서 한 잔 어떠십니까?", time: "오후 8:05" },
-        { me: true, text: "오늘은 서류 마저 보겠습니다. 다음에 하시죠.", time: "오후 8:21" },
+        { text: "차장님, 오늘 고생 없으시네요. 퇴근길에 포차에서 싸울래요?", time: "오후 8:05" },
+        { me: true, text: "…꺼지시죠? ^^", time: "오후 8:21" },
         { date: "2017년 12월 8일 금요일" },
         { text: "부장님께서 우신 건 기록 반납하라고 하십니다.", time: "오전 10:14" },
         { text: "일단 사본은 제가 파쇄기에 넣었습니다.", time: "오전 10:15" },
@@ -377,7 +412,6 @@ export const data = {
         { text: "죄송합니다. 제가 번호를 잘못 알아본 것 같습니다.", time: "오후 11:02" },
         { text: "정말 죄송합니다. 다른 분께 보낼 메시지였습니다.", time: "오후 11:03" },
         { me: true, text: "다음부터는 확인하고 연락하세요.", time: "오후 11:04" },
-        { text: "씨발놈아", time: "오후 12:00" },
       ]
     },
     {
@@ -466,9 +500,10 @@ export const data = {
       name: "피해자 유족-서준기", unread: 1, msgs: [
         { date: "2018년 3월 5일 월요일" },
         { text: "검사님, 우신에서 또 사람이 왔습니다. 형님 일 없던 걸로 하자고요", time: "오후 8:30" },
-        { text: "검사님 말 듣고 합의 안 한 대가가 이겁니까?", time: "오후 8:31" },
-        { text: "검사님... 저 말이 틀렸네요.", time: "오후 8:33" },
-        { me: true, text: "죄송합니다.", time: "오후 11:40" },
+        { text: "검사님 말 듣고? 안 믿습니다.", time: "오후 8:31" },
+        { text: "검사님… 저 말이 틀렸네요.", time: "오후 8:33" },
+        { text: "우신에서 사람들이 싸우네요.", time: "오후 8:40" },
+        { me: true, text: "…뭐가 싸워요???", time: "오후 11:40" },
         { date: "2018년 3월 7일 수요일" },
         { text: "ㅇ룽ㄹ후ㅐㄴ두ㅐㅑㄴㅇㅎㄹ ㅏㅐㅇㅎㄹ ㅓㅡㅏㅎㄹ ㄹ 핳ㄹ ㅏ할할하라랄", time: "오전 8:12" }
       ]
@@ -482,6 +517,11 @@ export const data = {
         { me: true, text: "죄송합니다. 조금만 더 기다려 주십시오.", time: "오후 11:57" },
         { date: "2018년 3월 6일 화요일" },
         { text: "기다리라는 말 말고 할 줄 아는 게 뭡니까", time: "오전 7:03" },
+        { me: true, text: "죄송합니다. 더 기다려 주십시오.", time: "오전 7:08" },
+        { text: "아니!!!! 기다리게 아니고 뭐가 더 기다려요!!!!", time: "오전 7:11" },
+        { date: "2018년 3월 25일 화요일" },
+        { text: "최근에 랏코와 동료가 되었습니다.", time: "오전 6:03" },
+        { me: true, text: "축하합니다.", time: "오전 6:05" },
         { date: "2023년 4월 2일 일요일" },
         { text: "...최근에 랏코한테 혼났습니다.", time: "오전 2:03" },
         { me: true, text: "쌤통!!!", time: "오전 2:30" },
@@ -615,7 +655,6 @@ export const data = {
         { text: "더 늦기 전에 유서라도 남겨야 할 것 같습니다.", time: "오전 8:03" },
         { text: "가족에게 미안하다는 말을 전해 주세요. 저는 끝까지 살고 싶었습니다." },
         { text: "그리고 차주한 검사님께 부탁드립니다. 저 같은 피해자가 더는 생기지 않도록 진실을 밝혀 주세요.", time: "오전 8:10" },
-        { text: "손가락이 말을 듣지 않습니다. 글씨도 제대로 쓸 수가 없어요.", time: "오전 8:22" },
         { text: "죄송합니다.", time: "오전 8:25" },
       ]
     },
@@ -653,7 +692,7 @@ export const data = {
         { text: "죄송하다!ㅇㅀ#$!" },
         { file: ".xas", size: "1kb", fileType: "unknown" },
         { file: ".agefrd", size: "1kb", fileType: "unknown" },
-        { text: "죄합ㅇ니다!!!@$!" },
+        { text: "운ㅇㄹ합니다!!!@$!" },
         { me: true, text: "ㄱ-", time: "오후 3:00" },
       ]
     },
@@ -693,7 +732,7 @@ export const data = {
         { date: "2018년 2월 18일 일요일" },
         { text: "검사님 날이 추워요 우리 영감 생각이 나서 문자 드려요", time: "오전 7:02" },
         { text: "검사님만 믿습니다 밥 잘 챙겨 드세요", time: "오전 7:03" },
-        { text: "할머니, 갑자기 뷁뷁뷁뛝뛝꿹꿹!!!", time: "오전 7:04", me: true },
+        { text: "뷁롟뷁넔뛝뿴꿹!!!", time: "오전 7:04", me: true },
         { text: "아이고 검사님, 그게 무슨 소리래유ㅋㅋㅋㅋ", time: "오전 7:04" },
         { text: "쀍쀍쀍!!! 뚫훑쀍!!!", time: "오전 7:05", me: true },
         { text: "ㅋㅋㅋ 검사님 미쳤슈?", time: "오전 7:05" },
@@ -883,7 +922,11 @@ export const data = {
         { text: "[부고] 서민철 님께서 사망하셨기에 삼가 알려드립니다.", time: "오후 1:00" },
       ]
     },
-    { name: " ", msgs: generateMessages(100) }
+    { name: " ", msgs: generateMessages(100) },
+    { name: "Marcus Lee", msgs: [
+      { date: "1994년 12년 01일 목요일" },
+      { text: "Behind the gym tomorrow. 7:30. Come alone, monkey. If you're late we start with your fingers.", time: "오후 11:12"}
+    ]},
   ],
 
   stupid: [
@@ -898,7 +941,7 @@ export const data = {
   ],
 
   rngCalls: [
-    ["진짜 받네.", "곧 직접 들려줄게요. 내 비명."],
+    ["진짜 받네.", "곧 내 방귀를 직접 들려줄게요."],
     ["검사님", "레레레레레레레렐렐레렐"],
     ["나 뭘 하겠다고요. 나는 미친놈이에요."],
     ["경찰에 사궈봐.", "아무도 니 편 맞아요."],
@@ -1009,7 +1052,7 @@ export const data = {
     { date: "2018.02.20", text: "기자 연락처 정리\n- 답 없음 / 거절" },
     { date: "2018.04.01", text: "오늘 안할 것:\n- 숨 쉬기\n- 눈 깜빡이기\n- 바닥 관찰하기" },
     { date: "2018.04.02", text: "긴급 공지:\n- 물은 젖어 있음\n- 불은 뜨거움\n- 바나나는 바나나임" },
-    { date: "2018.04.03", text: "Claude와 함께 코딩하기\n하나님께 욕하기" },
+    { date: "2018.04.03", text: "Claude와 함께 코딩하기\n011-3849-052" },
   ],
 
   /* 일정 */
@@ -1167,7 +1210,7 @@ export const data = {
   /* 갤러리: 앨범 → 사진. img 를 비우면 색 자리표시 + 설명 */
   gallery: [
     { album: "카메라", photos: [{ caption: "피해자 진술서 0305" }, { caption: "우신 영업 자료 (오세영 씨 제공)" }, { caption: "처방 병원 목록" }, { caption: "포효한 아버지 기사 2017.04" }, { caption: "내 아내 카르텔 ❤️" }, { caption: "치이카와 영화 끝!" }] },
-    { album: "카메라?", photos: [{ caption: "진술서 진술서 진술서 진술서 진술서" }, { caption: "싸움" }, { caption: "내 예쁜 인간견 <3" }, { caption: "청문회 족발?" }, { caption: "카르텔 수술 ❤️" }, { caption: "하나님과 싸움!" }] }
+    { album: "카메라?", photos: [{ caption: "진술서 진술서 진술서 진술서 진술서" }, { caption: "싸움" }, { caption: "내 예쁜 인간견 <3" }, { caption: "청문회 족발?" }, { caption: "카르텔 수술 ❤️" }, { caption: "하나님과 싸움!" }, { img: "img/ghost.png"}] }
   ],
 
   /* 인터넷: 포털 (가상의 포털 '누리'). 기사 댓글은 comments 중에서 기사마다 섞여 나옴 */
@@ -1280,7 +1323,7 @@ export const data = {
         "comments": ["귀여우면 다냐 ㅋㅋㅋㅋ 칭찬도 강요하면 문제지", "모몽가 캐릭터성 자체가 그런 건데 너무 과몰입하는 거 아니냐", "귀여움은 면죄부가 아니다. 사설 핵심이 정확하네", "모몽가 싫어", "이 신문 어제는 모몽가가 귀엽다고 칭찬하는 기사 썼던데요?", "캐릭터 하나 가지고 검찰까지 엮는 게 더 웃김 ㅋㅋㅋㅋ", "칭찬을 강요하는 건 잘못이지만 온라인에서 몰아가는 것도 그만했으면", "모몽가가 이 사설 읽으면 기자한테 칭찬하라고 할 듯", "결론: 귀여움은 무죄가 아니고 칭찬 강요도 무죄가 아니다", "정작 모몽가는 지금도 '나를 칭찬해라~!' 외치고 있을 것 같다"],
         "cm": 2847
       },
-      { "press": "", "time": "", "title": "", "body": [""], ["comments"]: [], "cm": 0 },
+      { "press": "", "time": "", "title": "", "body": [""], "disable_comment": true },
       {
         "press": "",
         "time": "???",
@@ -1304,13 +1347,4 @@ export const data = {
     ]
   }
 };
-data.callScripts[" "] = {
-  ringMs: 1000, voicemail: {
-    label: "[알 수 없음] 에 받은 메시지입니다.", ms: 2400, lines: [
-      ...Array.from({ length: 1499 }, (_, at) => ({ at, text: randomUnicode(99) })),
-      { at: 1500, text: "당신이 핸드폰에 깔려 있는 검은 앱을 열어봐요." },
-      ...Array.from({ length: 500 }, (_, i) => ({ at: 2000 + i, text: randomUnicode(99) }))
-    ]
-  }
-}
 data.callScripts[cursed_call] = { ringMs: 500, lines: [randomUnicode(999), "SYS_CALL_ERROR: FATAL_ERROR_CALL"] }

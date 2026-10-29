@@ -584,7 +584,7 @@ import { data } from "./modules/data.js"
         setTimeout(() => { const last = conv.querySelector(".bub.me:last-child"); if (last) last.classList.add("fail"); dialog("메시지 전송 실패", "상대방이 회원님의 메시지 수신을 차단하였습니다. 더 이상 메시지를 보낼 수 없습니다."); }, 1300);
         return;
       }
-      const batch = k < (C.replies || []).length ? C.replies[k] : (C.loop ? [C.loop[Math.floor(Math.random() * C.loop.length)]] : null);
+      const batch = k < (C.replies || []).length ? C.replies[k] : (C.loop ? [randomArray(C.loop)] : null);
       if (!batch) return;
       let at = 1400 + Math.random() * 1200;
       [].concat(batch).forEach(r => { setTimeout(() => deliverSMS(T.name, r), at); at += smsGap(r); });
