@@ -256,14 +256,14 @@ export const data = {
         { me: true, text: "수고했어.", time: "오후 9:15" },
         { date: "2018년 3월 7일 수요일" },
         { text: "검사님, 강민재입니다. 오랜만에 갑자기 연락드려 죄송합니다.", time: "오후 11:51" },
-        { text: "기사 보고 기사와 싸웠어요. 괜찮으신 거죠?", time: "오후 11:52" },
+        { text: "기사를 보고는 결국 그 내용과 논쟁을 벌이게 됐네요. 괜찮으신 거죠?", time: "오후 11:52" },
         { me: true, text: "니가 뭔데 뭐가 괜찮아!", time: "오후 12:00" },
         { date: "2018년 3월 8일 목요일" },
-        { text: "청문회에 안 나오셨다는 얘기 들었습니다.", time: "오후 2:20" },
-        { text: "검사님, 지금 안전하신 거예요?", time: "오후 2:20" },
-        { text: "전화 계속 꺼져 있다고 나와요.", time: "오후 3:47" },
-        { text: "답장하실 수 있는 상황이면 아무 글자라도 보내 주세요. 점 하나만 찍으셔도 돼요.", time: "오후 3:48" },
-        { text: "혹시 다른 사람이 이 휴대폰 보고 있는 거면, 답하지 마세요. 그냥 제가 알아서 찾겠습니다.", time: "오후 11:03" },
+        { text: "청문회에 나오셨다는 얘기 들었습니다.", time: "오후 2:20" },
+        { text: "검사님, 지금 위험하신 거네요.", time: "오후 2:20" },
+        { text: "점 하나만 찍을게요.", time: "오후 3:48" },
+        { text: ".", time: "오후 5:03" },
+        { me: true, text: "미친 짓을 그만하세요.", time: "오후 5:20" },
         { date: "2018년 3월 10일 토요일" },
         { text: "오피스텔 관리사무소에 CCTV 영상을 보여달라고 했는데, 결국 쇠지렛대로 CCTV를 박살 내버렸죠.", time: "오후 1:35" },
         { text: "저는 최고랍니다.", time: "오후 1:36" },
@@ -310,6 +310,21 @@ export const data = {
         { text: "그럼 바다에 있는 ATM부터 찾아보겠습니다", time: "오전 9:15" },
         { me: true, text: "장태식 씨, 한 번 더 말도 안될소리를 하시면 차단하겠습니다!", time: "오전 9:17" },
       ]
+    },
+    {
+      name: "모던테일러", msgs: [
+        { date: "2018년 3월 9일 금요일" },
+        { text: "[Web발신]\n(광고)[모던테일러] 가을 맞춤 정장 30% 할인 (~10/20)\n\n지난번 치수 그대로 2주 완성 가능합니다.\n서초점 예약 ▶ moderntailor.kr\n\n무료거부 080-000-0000", time: "오후 12:00" },
+        { me: true, text: "이게 뭐야? 나한테 정장 광고를 왜 보내?", time: "오후 12:01" },
+        { text: "고객님, 가을 맞춤 정장 30% 할인 행사 안내입니다.", time: "오후 12:01" },
+        { me: true, text: "내가 정장 산다고 했냐, 이 스팸 새끼야?", time: "오후 12:02" },
+        { text: "고객님께 유용한 혜택을 안내해 드리는 것입니다.", time: "오후 12:02" },
+        { me: true, text: "유용하긴 개뿔! 내 번호 당장 지워!", time: "오후 12:03" },
+        { text: "수신 거부는 080-000-0000으로 연락해 주세요.", time: "오후 12:03" },
+        { me: true, text: "아니, 스팸은 네가 보내 놓고 왜 내가 전화해야 해?", time: "오후 12:04" },
+        { text: "불편을 드려 죄송합니다. 수신 거부 처리하겠습니다.", time: "오후 12:04" },
+        { me: true, text: "다음에 또 보내면 고소할 거야. 알겠어?", time: "오후 12:05" },
+      ],
     },
     {
       name: "형사3부-이예진 검사", msgs: [
@@ -923,10 +938,13 @@ export const data = {
       ]
     },
     { name: " ", msgs: generateMessages(100) },
-    { name: "Marcus Lee", msgs: [
-      { date: "1994년 12년 01일 목요일" },
-      { text: "Behind the gym tomorrow. 7:30. Come alone, monkey. If you're late we start with your fingers.", time: "오후 11:12"}
-    ]},
+    { name: "발신번호 표시제한", msgs: [""] },
+    {
+      name: "Marcus Lee", msgs: [
+        { date: "1994년 12년 01일 목요일" },
+        { text: "Behind the gym tomorrow. 7:30. Come alone, monkey. If you're late we start with your fingers.", time: "오후 11:12" }
+      ]
+    },
   ],
 
   stupid: [
@@ -1210,7 +1228,7 @@ export const data = {
   /* 갤러리: 앨범 → 사진. img 를 비우면 색 자리표시 + 설명 */
   gallery: [
     { album: "카메라", photos: [{ caption: "피해자 진술서 0305" }, { caption: "우신 영업 자료 (오세영 씨 제공)" }, { caption: "처방 병원 목록" }, { caption: "포효한 아버지 기사 2017.04" }, { caption: "내 아내 카르텔 ❤️" }, { caption: "치이카와 영화 끝!" }] },
-    { album: "카메라?", photos: [{ caption: "진술서 진술서 진술서 진술서 진술서" }, { caption: "싸움" }, { caption: "내 예쁜 인간견 <3" }, { caption: "청문회 족발?" }, { caption: "카르텔 수술 ❤️" }, { caption: "하나님과 싸움!" }, { img: "img/ghost.png"}] }
+    { album: "카메라?", photos: [{ caption: "진술서 진술서 진술서 진술서 진술서" }, { caption: "싸움" }, { caption: "내 예쁜 인간견 <3" }, { caption: "청문회 족발?" }, { caption: "카르텔 수술 ❤️" }, { caption: "하나님과 싸움!" }, { img: "img/ghost.png" }] }
   ],
 
   /* 인터넷: 포털 (가상의 포털 '누리'). 기사 댓글은 comments 중에서 기사마다 섞여 나옴 */
@@ -1236,6 +1254,8 @@ export const data = {
       "오늘도 사고침",
       "누리 실시간 난리"
     ],
+    "nicks": ["kjh7****", "정의로운****", "좆까****", "EZ***", "FU**", "sky_****", "lee0****", "달빛고양****", "anon****", "parkm****", "서울시민****", "hjk9****", "무명****", "jjang****", "엄마는강하****", "bluew****", "소시민****", "dkfk****", "yoon****", "현실주****", "mnb1****", "강남구****", "qwer****", "새벽세시****", "ch0i****", "그냥지나가****", "zzzz****"],
+
     "news": [
       {
         "press": "한빛일보",

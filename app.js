@@ -372,8 +372,8 @@ import { data } from "./modules/data.js"
       </div>
       ${incoming ? `<div class="ic-btns" data-btns><button class="ic-ok" data-ok>${IC.handset}통화</button><button class="ic-no" data-no>${IC.handset}거절</button></div>` : ""}
       <div class="tw-pad" data-pad hidden><div class="tw-digits" data-digits></div>
-        <div class="tw-keys">${["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"].map(k => `<button data-dk="${k}">${k}</button>`).join("")}</div>
-        <button class="tw-hide" data-hide>숨기기</button></div>
+      <div class="tw-keys">${["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"].map(k => `<button data-dk="${k}">${k}</button>`).join("")}</div>
+      <button class="tw-hide" data-hide>숨기기</button></div>
     </section>`;
   function wireCall(el, onKey) {
     const pad = el.querySelector("[data-pad]"), digits = el.querySelector("[data-digits]");
@@ -399,7 +399,7 @@ import { data } from "./modules/data.js"
     inCall = true;
     const dg = s => String(s).replace(/\D/g, "");
     let sc = isVM ? { ringMs: 1500, voicemail: true, lines: [] } : (P.callScripts || {})[name] || (P.callScripts || {})[number] || Object.entries(P.callScripts || {}).find(([k]) => dg(k) && dg(k) === dg(number))?.[1];
-    if (sc) {   // 두 번째 전화부터는 again 대본 (reject: 짧게 울리다 끊김)
+    if (sc) { // 두 번째 전화부터는 again 대본 (reject: 짧게 울리다 끊김)
       sc._n = (sc._n || 0) + 1;
       if (sc._n >= 2 && sc.again) sc = sc.again.reject ? { ringMs: sc.again.ringMs || 1800, dead: true, lines: [] } : sc.again;
     }
@@ -494,12 +494,9 @@ import { data } from "./modules/data.js"
 
     const bubble = m => {
       const fileType = m.fileType;
-      const isDate = !!m.date;
-      const isFile = !!m.file || ["audio", "pdf", "txt"].includes(fileType);
+      if (!!m.date) return `<div class="date"><span>${esc(m.date)}</span></div>`;
 
-      if (isDate) return `<div class="date"><span>${esc(m.date)}</span></div>`;
-
-      const content = isFile
+      const content = !!m.file || ["audio", "pdf", "txt"].includes(fileType)
         ? `<button class="b fileb${fileType === "audio" ? " aud" : ""}"
               data-file="${esc(m.file || "")}"
               data-type="${esc(fileType || "pdf")}">
@@ -508,8 +505,7 @@ import { data } from "./modules/data.js"
             </button>`
         : `<div class="b">${esc(m.text || "")}</div>`;
 
-      return `<div class="bub${m.me ? " me" : ""}">${content}<small>${esc(m.time || "")}</small>
-    </div>`;
+      return `<div class="bub${m.me ? " me" : ""}">${content}<small>${esc(m.time || "")}</small></div>`;
     };
 
     const el = h(`<section class="scr"><div class="tbar">${esc(nameOf(T.name))}<small>${esc(numberOf(T.name) === T.name ? "" : numberOf(T.name))}</small></div>

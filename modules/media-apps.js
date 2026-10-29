@@ -24,17 +24,17 @@ export function createMediaApps({ P, h, esc, push }) {
     const thumb = i => `<span class="wb-th" style="background:${tint(i + 5)}"></span>`;
     const el = page(N.url, `
       <div class="wb-top"><b class="wb-logo">${esc(N.name)}</b><div class="wb-search"><span>검색어를 입력하세요</span><i>검색</i></div></div>
-      <nav class="wb-tabs"><b>뉴스</b><span>연예</span><span>스포츠</span><span>경제</span><span>블로그</span></nav>
+      <nav class="wb-tabs"><b>뉴스</b><span>연예</span><span>스크립트</span><span>바이러스</span><span>블로그</span></nav>
       <div class="wb-box"><h3>실시간 급상승 검색어</h3><ol class="wb-rank">${N.trends.map((t, i) => `<li><em>${i + 1}</em>${esc(t)}<small>${i < 3 ? "▲" : i % 3 ? "NEW" : "▲"}</small></li>`).join("")}</ol></div>
       <div class="wb-box"><h3>많이 본 뉴스</h3>${N.news.map((n, i) => `<button class="wb-news" data-art="${i}">${thumb(i)}<span><b>${esc(n.title)}</b><small>${esc(n.press)} · ${esc(n.time)}${isOff(n) ? "" : ` · 댓글 ${n.cm.toLocaleString()}`}</small></span></button>`).join("")}</div>
-      <div class="wb-foot">${esc(N.name)} · PC버전 · 로그인</div>`);
+      <div class="wb-foot">${esc(N.name)} · PC버전 · 666 · 로그인</div>`);
     el.addEventListener("click", e => { const b = e.target.closest("[data-art]"); if (b) push(article(+b.dataset.art)); });
 
     function article(i) {
       const n = N.news[i];
+      const NICKS = N["nicks"];
       const cm = (n.comments || []).map(c => typeof c === "string" ? { text: c } : c);
       const off = isOff(n);
-      const NICKS = ["kjh7****", "정의로운****", "좆까****", "sky_****", "lee0****", "달빛고양****", "anon****", "parkm****", "서울시민****", "hjk9****", "무명****", "jjang****", "엄마는강하****", "bluew****", "소시민****", "dkfk****", "yoon****", "현실주****", "mnb1****", "강남구****", "qwer****", "새벽세시****", "ch0i****", "그냥지나가****", "zzzz****"];
       const nick = k => NICKS[(i * 5 + k * 7) % NICKS.length];
       const ago = k => ["방금 전", "3분 전", "12분 전", "27분 전", "41분 전", "1시간 전", "1시간 전", "2시간 전", "3시간 전"][k] || "5시간 전";
 

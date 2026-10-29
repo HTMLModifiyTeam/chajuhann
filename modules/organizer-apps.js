@@ -51,7 +51,7 @@ export function createOrganizerApps({ P, h, esc, push, deliverSMS, randomUnicode
         <br>
         <button id="erase_messages" type="button">문자 기록 지우기</button>
         <br>
-        <button id="unknown_msg" type="button">알 수 없는 메세지 받기</button>
+        <button id="unknown_msg" type="button">알 수 없는 메시지에 받기</button>
 		  </div>
     `);
     el.querySelector("#erase_messages").onclick = () => P.messages = [];
